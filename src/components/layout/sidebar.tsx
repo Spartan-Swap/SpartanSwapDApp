@@ -28,7 +28,7 @@ export default function Sidebar() {
                   item.current
                     ? "bg-gray-900 text-white"
                     : "text-gray-300 hover:bg-gray-700 hover:text-white",
-                  "group flex items-center rounded-md px-2 py-2 text-sm font-medium"
+                  "group flex items-center rounded-md p-2 pr-4 text-sm font-medium"
                 )}
               >
                 <item.icon
