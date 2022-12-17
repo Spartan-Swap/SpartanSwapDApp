@@ -17,7 +17,11 @@ const Swap: NextPage = () => {
 
   return (
     <>
-      <AssetSelect assetId={assetId} isOpen={assetSelectOpen} setOpen={setassetSelectOpen} />
+      <AssetSelect
+        assetId={assetId}
+        isOpen={assetSelectOpen}
+        setOpen={setassetSelectOpen}
+      />
       <PageHeading title="Swap" button1={button1} button2={button2} />
       <main className="container mx-auto flex flex-row flex-wrap space-x-1 p-4 sm:px-6 lg:px-8">
         <div id="first" className="">

@@ -19,7 +19,7 @@ export type AssetProps = {
   logo: string;
 };
 
-const assets = [
+const assets: AssetProps[] = [
   {
     id: 1,
     name: "Wrapped BNB",
@@ -38,7 +38,7 @@ const assets = [
   },
   {
     id: 3,
-    name: "Trust Wallet",
+    name: "Trust Wallet Token",
     ticker: "TWT",
     site: "https://trustwallet.com/",
     decmials: 18,
@@ -240,7 +240,7 @@ export default function AssetSelect({
                           aria-hidden="true"
                         />
                         <p className="mt-4 font-semibold text-gray-900">
-                          No people found
+                          No assets found
                         </p>
                         <p className="mt-2 text-gray-500">
                           We couldn’t find anything with that term. Please try
