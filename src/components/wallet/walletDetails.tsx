@@ -8,44 +8,11 @@ import {
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/20/solid";
 
-import type { AssetProps } from "../assetSelect";
 import { useState } from "react";
+import { assets } from "../assetSelect";
 
-const assets: AssetProps[] = [
-  {
-    id: 1,
-    name: "Wrapped BNB",
-    ticker: "WBNB",
-    site: "https://www.binance.org/",
-    decmials: 18,
-    logo: "https://bscscan.com/token/images/binance_32.png",
-  },
-  {
-    id: 2,
-    name: "Spartan Protocol Token V2",
-    ticker: "SPARTA",
-    site: "https://spartanprotocol.org/",
-    decmials: 18,
-    logo: "https://bscscan.com/token/images/spartan2_32.png",
-  },
-  {
-    id: 3,
-    name: "Trust Wallet Token",
-    ticker: "TWT",
-    site: "https://trustwallet.com/",
-    decmials: 18,
-    logo: "https://bscscan.com/token/images/trust_32.png",
-  },
-  {
-    id: 4,
-    name: "Binance-Peg BUSD Token",
-    ticker: "BUSD",
-    site: "https://www.binance.com/en/busd",
-    decmials: 18,
-    logo: "https://bscscan.com/token/images/busd_32_2.png",
-  },
-  // More assets...
-];
+import type { AssetProps } from "../assetSelect";
+import { shortenString } from "../../utils/helpers";
 
 const recent = [assets[1], assets[3], assets[2]];
 
@@ -83,7 +50,7 @@ export function WalletDetails() {
                 aria-hidden="true"
               />
               <Combobox.Input
-                className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white placeholder-gray-500 focus:ring-0 sm:text-sm"
+                className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-1 sm:text-sm"
                 placeholder="Search..."
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -155,7 +122,9 @@ export function WalletDetails() {
                     <h2 className="mt-3 font-semibold text-gray-300">
                       {ensName}
                     </h2>
-                    <p className="text-sm leading-6 text-gray-500">{address}</p>
+                    <p className="text-sm leading-6 text-gray-500">
+                      {address && shortenString(address)}
+                    </p>
                     <span>
                       <DocumentDuplicateIcon
                         className="inline h-5 w-5 text-gray-300"

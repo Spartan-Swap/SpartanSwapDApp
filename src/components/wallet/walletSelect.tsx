@@ -36,7 +36,10 @@ export default function WalletSelect() {
 
   return (
     <>
-      <Combobox value={selectedWallet} onChange={setSelectedWallet}>
+      <Combobox
+        value={selectedWallet}
+        onChange={(wallet) => setSelectedWallet(wallet)}
+      >
         {({ activeOption }) => (
           <>
             <div className="relative">
@@ -45,7 +48,7 @@ export default function WalletSelect() {
                 aria-hidden="true"
               />
               <Combobox.Input
-                className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white placeholder-gray-500 focus:ring-0 sm:text-sm"
+                className="h-12 w-full border-0 bg-transparent pl-11 pr-4 text-white placeholder-gray-500 focus:outline-none focus:ring-1 sm:text-sm"
                 placeholder="Search..."
                 onChange={(event) => setQuery(event.target.value)}
               />
@@ -70,15 +73,16 @@ export default function WalletSelect() {
                         as="div"
                         key={wallet.id}
                         value={wallet}
-                        className={({ active }) =>
+                        className={({ active, selected }) =>
                           classNames(
                             "flex cursor-default select-none items-center rounded-md p-2",
-                            active ? "bg-gray-800 text-white" : ""
+                            selected ? "bg-gray-800 text-white" : "",
+                            active ? "bg-gray-800" : ""
                           )
                         }
                         onClick={() => setSelectedWallet(wallet)}
                       >
-                        {({ active }) => (
+                        {({ selected }) => (
                           <>
                             <img
                               src={wallet.logo}
@@ -88,7 +92,7 @@ export default function WalletSelect() {
                             <span className="ml-3 flex-auto truncate">
                               {wallet.name}
                             </span>
-                            {active && (
+                            {selected && (
                               <ChevronRightIcon
                                 className="ml-3 hidden h-5 w-5 flex-none text-gray-300 sm:block"
                                 aria-hidden="true"

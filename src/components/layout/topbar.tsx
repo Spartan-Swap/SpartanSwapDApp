@@ -26,7 +26,7 @@ export default function Topbar() {
               />
               <a href="./">
                 <div className="flex flex-shrink-0 items-center text-white">
-                  *LOGO*BRANDING*
+                  *LOGO* SpartanSwap
                 </div>
               </a>
             </div>
