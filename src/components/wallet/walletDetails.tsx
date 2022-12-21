@@ -12,7 +12,7 @@ import { useState } from "react";
 import { assets } from "../assetSelect";
 
 import type { AssetProps } from "../assetSelect";
-import { shortenString } from "../../utils/helpers";
+import { shortenString } from "../../utils/formatting";
 
 const recent = [assets[1], assets[3], assets[2]];
 

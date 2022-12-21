@@ -1,21 +1,26 @@
 import { Fragment, useState } from "react";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
-import { ArrowTopRightOnSquareIcon, DocumentDuplicateIcon, MagnifyingGlassIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowTopRightOnSquareIcon,
+  DocumentDuplicateIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/20/solid";
 import { UsersIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
+import { shortenString } from "../utils/formatting";
+
 import type { Address } from "wagmi";
-import { shortenString } from "../utils/helpers";
 
 export type AssetSelectProps = {
-  assetId: number;
+  selectedAsset: AssetProps;
+  setSelectedAsset: (value: AssetProps) => void;
   isOpen: boolean;
   setOpen: (value: boolean) => void;
 };
 
-type AllowedTags = "Native Coin" | "Non-Native Coin" | "Token" | "Stablecoin"
+type AllowedTags = "Native Coin" | "Non-Native Coin" | "Token" | "Stablecoin";
 
 export type AssetProps = {
-  id: number;
   name: string;
   ticker: string;
   address: Address;
@@ -25,29 +30,30 @@ export type AssetProps = {
   tags: AllowedTags[];
 };
 
+export const bnbAsset: AssetProps = {
+  name: "Wrapped BNB",
+  ticker: "WBNB",
+  address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+  site: "https://www.binance.org/",
+  decimals: 18,
+  logo: "https://bscscan.com/token/images/binance_32.png",
+  tags: ["Native Coin"],
+};
+
+export const spartaAsset: AssetProps = {
+  name: "Spartan Protocol Token V2",
+  ticker: "SPARTA",
+  address: "0x3910db0600eA925F63C36DdB1351aB6E2c6eb102",
+  site: "https://spartanprotocol.org/",
+  decimals: 18,
+  logo: "https://bscscan.com/token/images/spartan2_32.png",
+  tags: ["Token"],
+};
+
 export const assets: AssetProps[] = [
+  bnbAsset,
+  spartaAsset,
   {
-    id: 1,
-    name: "Wrapped BNB",
-    ticker: "WBNB",
-    address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-    site: "https://www.binance.org/",
-    decimals: 18,
-    logo: "https://bscscan.com/token/images/binance_32.png",
-    tags: ["Native Coin"],
-  },
-  {
-    id: 2,
-    name: "Spartan Protocol Token V2",
-    ticker: "SPARTA",
-    address: "0x3910db0600eA925F63C36DdB1351aB6E2c6eb102",
-    site: "https://spartanprotocol.org/",
-    decimals: 18,
-    logo: "https://bscscan.com/token/images/spartan2_32.png",
-    tags: ["Token"],
-  },
-  {
-    id: 3,
     name: "Trust Wallet Token",
     ticker: "TWT",
     address: "0x4B0F1812e5Df2A09796481Ff14017e6005508003",
@@ -57,7 +63,6 @@ export const assets: AssetProps[] = [
     tags: ["Token"],
   },
   {
-    id: 4,
     name: "Binance-Peg BUSD Token",
     ticker: "BUSD",
     address: "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56",
@@ -67,7 +72,6 @@ export const assets: AssetProps[] = [
     tags: ["Token", "Stablecoin"],
   },
   {
-    id: 5,
     name: "Binance-Peg USD Coin",
     ticker: "USDC",
     address: "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
@@ -77,7 +81,6 @@ export const assets: AssetProps[] = [
     tags: ["Token", "Stablecoin"],
   },
   {
-    id: 6,
     name: "Binance-Peg BSC-USD",
     ticker: "USDT",
     address: "0x55d398326f99059fF775485246999027B3197955",
@@ -87,7 +90,6 @@ export const assets: AssetProps[] = [
     tags: ["Token", "Stablecoin"],
   },
   {
-    id: 7,
     name: "Binance-Peg BTCB Token",
     ticker: "BTCB",
     address: "0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c",
@@ -99,27 +101,19 @@ export const assets: AssetProps[] = [
   // More assets...
 ];
 
-const recent = [
-  assets[6],
-  assets[4],
-  assets[2],
-  assets[0],
-  assets[3],
-];
+const recent = [assets[6], assets[4], assets[2], assets[0], assets[3]];
 
 function classNames(...classes: string[]) {
   return classes.join(" ");
 }
 
 export default function AssetSelect({
-  assetId,
+  selectedAsset,
+  setSelectedAsset,
   isOpen,
   setOpen,
 }: AssetSelectProps) {
   const [query, setQuery] = useState("");
-  const [selectedAsset, setSelectedAsset] = useState<AssetProps | undefined>(
-    assets[0]
-  );
 
   const filteredAssets =
     query === ""
@@ -193,14 +187,44 @@ export default function AssetSelect({
                           <div className="-mx-2 text-sm text-gray-400">
                             <div className="flex flex-wrap">
                               {query === "" &&
-                                recent.map((asset) => (
+                                recent.map(
+                                  (asset) =>
+                                    asset && (
+                                      <Combobox.Option
+                                        as="div"
+                                        key={asset.address}
+                                        value={asset}
+                                        className={({ selected, active }) =>
+                                          classNames(
+                                            "flex-1 cursor-default select-none items-center rounded-md p-2 text-center",
+                                            selected
+                                              ? "bg-gray-800 text-white"
+                                              : "",
+                                            active ? "bg-gray-800" : ""
+                                          )
+                                        }
+                                      >
+                                        <img
+                                          src={asset?.logo}
+                                          alt=""
+                                          className="mx-auto h-6 w-6 flex-none rounded-full"
+                                        />
+                                        {asset?.ticker}
+                                      </Combobox.Option>
+                                    )
+                                )}
+                            </div>
+                            <hr className="my-2 border-gray-500 border-opacity-20" />
+                            {(query === "" ? assets : filteredAssets).map(
+                              (asset) =>
+                                asset && (
                                   <Combobox.Option
                                     as="div"
-                                    key={asset?.id}
+                                    key={asset.address}
                                     value={asset}
                                     className={({ selected, active }) =>
                                       classNames(
-                                        "flex-1 cursor-default select-none items-center rounded-md p-2 text-center",
+                                        "flex cursor-default select-none items-center rounded-md p-2",
                                         selected
                                           ? "bg-gray-800 text-white"
                                           : "",
@@ -208,56 +232,32 @@ export default function AssetSelect({
                                       )
                                     }
                                   >
-                                    <img
-                                      src={asset?.logo}
-                                      alt=""
-                                      className="mx-auto h-6 w-6 flex-none rounded-full"
-                                    />
-                                    {asset?.ticker}
-                                  </Combobox.Option>
-                                ))}
-                            </div>
-                            <hr className="my-2 border-gray-500 border-opacity-20" />
-                            {(query === "" ? assets : filteredAssets).map(
-                              (asset) => (
-                                <Combobox.Option
-                                  as="div"
-                                  key={asset?.id}
-                                  value={asset}
-                                  className={({ selected, active }) =>
-                                    classNames(
-                                      "flex cursor-default select-none items-center rounded-md p-2",
-                                      selected ? "bg-gray-800 text-white" : "",
-                                      active ? "bg-gray-800" : ""
-                                    )
-                                  }
-                                >
-                                  {({ selected }) => (
-                                    <>
-                                      <img
-                                        src={asset?.logo}
-                                        alt=""
-                                        className="h-6 w-6 flex-none rounded-full"
-                                      />
-                                      <span className="ml-3 flex-auto truncate">
-                                        <div className="inline">
-                                          {asset?.ticker}
-                                        </div>
-                                        {/* TODO: Pull token balances from user wallet */}
-                                        <div className="float-right inline">
-                                          1,234.5678910
-                                        </div>
-                                      </span>
-                                      {selected && (
-                                        <ChevronRightIcon
-                                          className="ml-3 h-5 w-5 flex-none text-gray-300"
-                                          aria-hidden="true"
+                                    {({ selected }) => (
+                                      <>
+                                        <img
+                                          src={asset?.logo}
+                                          alt=""
+                                          className="h-6 w-6 flex-none rounded-full"
                                         />
-                                      )}
-                                    </>
-                                  )}
-                                </Combobox.Option>
-                              )
+                                        <span className="ml-3 flex-auto truncate">
+                                          <div className="inline">
+                                            {asset?.ticker}
+                                          </div>
+                                          {/* TODO: Pull token balances from user wallet */}
+                                          <div className="float-right inline">
+                                            1,234.5678910
+                                          </div>
+                                        </span>
+                                        {selected && (
+                                          <ChevronRightIcon
+                                            className="ml-3 h-5 w-5 flex-none text-gray-300"
+                                            aria-hidden="true"
+                                          />
+                                        )}
+                                      </>
+                                    )}
+                                  </Combobox.Option>
+                                )
                             )}
                           </div>
                         </div>
@@ -304,12 +304,13 @@ export default function AssetSelect({
                                   </a>
                                 </dd>
                               </dl>
-                                <button
-                                  type="button"
-                                  className="mt-6 rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                >
-                                  Select
-                                </button>
+                              <button
+                                type="button"
+                                className="mt-6 rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                onClick={() => setOpen(false)}
+                              >
+                                Select / Close
+                              </button>
                             </div>
                           </div>
                         )}
