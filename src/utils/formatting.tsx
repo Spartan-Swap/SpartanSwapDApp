@@ -101,3 +101,7 @@ export const shortenString = (string: string): string => {
   }
   return string;
 };
+
+export const classNames = (...classes: string[]) => {
+  return classes.join(" ");
+};

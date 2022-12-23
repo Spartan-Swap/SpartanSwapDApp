@@ -7,10 +7,7 @@ import { walletList } from "./client";
 import { useConnect } from "wagmi";
 
 import type { WalletProps } from "./client";
-
-function classNames(...classes: string[]) {
-  return classes.join(" ");
-}
+import { classNames } from "../../utils/formatting";
 
 // TODO: Make this use-able on mobile (show inline 'connect' button on mobile but make sure active state is handled correctly)
 export default function WalletSelect() {

@@ -7,17 +7,17 @@ import { useEffect, useState } from "react";
 import BigNumber from "bignumber.js";
 
 const globalFormat = {
-  prefix: '',
-  decimalSeparator: '.',
-  groupSeparator: ',',
+  prefix: "",
+  decimalSeparator: ".",
+  groupSeparator: ",",
   groupSize: 3,
   secondaryGroupSize: 0,
-  fractionGroupSeparator: ' ',
+  fractionGroupSeparator: " ",
   fractionGroupSize: 0,
-  suffix: '',
-}
+  suffix: "",
+};
 
-BigNumber.config({ FORMAT: globalFormat })
+BigNumber.config({ FORMAT: globalFormat });
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const [clientSideRender, setClientSideRender] = useState(false);

@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/20/solid";
 import { UsersIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
-import { shortenString } from "../utils/formatting";
+import { classNames, shortenString } from "../utils/formatting";
 
 import type { Address } from "wagmi";
 
@@ -102,10 +102,6 @@ export const assets: AssetProps[] = [
 ];
 
 const recent = [assets[6], assets[4], assets[2], assets[0], assets[3]];
-
-function classNames(...classes: string[]) {
-  return classes.join(" ");
-}
 
 export default function AssetSelect({
   selectedAsset,

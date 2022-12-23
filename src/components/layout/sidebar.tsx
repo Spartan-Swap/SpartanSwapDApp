@@ -1,4 +1,5 @@
 import { FolderIcon, HomeIcon, UsersIcon } from "@heroicons/react/24/outline";
+import { classNames } from "../../utils/formatting";
 
 const navigation = [
   { name: "Swap", icon: HomeIcon, href: "#", current: true },
@@ -9,10 +10,6 @@ const secondaryNavigation = [
   { name: "Item 1", href: "#" },
   { name: "Item 2", href: "#" },
 ];
-
-function classNames(...classes: string[]) {
-  return classes.join(" ");
-}
 
 export default function Sidebar() {
   return (

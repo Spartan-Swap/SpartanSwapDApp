@@ -12,13 +12,9 @@ import { useState } from "react";
 import { assets } from "../assetSelect";
 
 import type { AssetProps } from "../assetSelect";
-import { shortenString } from "../../utils/formatting";
+import { classNames, shortenString } from "../../utils/formatting";
 
 const recent = [assets[1], assets[3], assets[2]];
-
-function classNames(...classes: string[]) {
-  return classes.join(" ");
-}
 
 export function WalletDetails() {
   const { address, connector } = useAccount();
