@@ -1,5 +1,5 @@
 import type { NextPage } from "next";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AssetSelect, { bnbAsset, spartaAsset } from "../components/assetSelect";
 import PageHeading from "../components/pageHeading";
 import {
@@ -7,7 +7,13 @@ import {
   DocumentDuplicateIcon,
   XCircleIcon,
 } from "@heroicons/react/20/solid";
-import { formatFromWei, shortenString } from "../utils/formatting";
+import {
+  BN,
+  convertFromWei,
+  convertToWei,
+  formatFromWei,
+  shortenString,
+} from "../utils/formatting";
 import { useAccount, useBalance } from "wagmi";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
@@ -25,6 +31,8 @@ const Swap: NextPage = () => {
   const [assetId, setassetId] = useState<AssetIdProps>(1);
   const [selectedAsset1, setSelectedAsset1] = useState<AssetProps>(bnbAsset);
   const [selectedAsset2, setSelectedAsset2] = useState<AssetProps>(spartaAsset);
+  const [isLoading, setLoading] = useState(false);
+  const [outputAmount, setOutputAmount] = useState("0.00");
 
   const assetBalance1 = useBalance({
     address: address,
@@ -38,6 +46,42 @@ const Swap: NextPage = () => {
   const toggleAssetSelectOpen = (assetId: AssetIdProps) => {
     setassetId(assetId);
     setassetSelectOpen(true);
+  };
+
+  useEffect(() => {
+    setInput("");
+  }, [selectedAsset1, selectedAsset2]);
+
+  const setInput = (units: string) => {
+    const el = document.getElementById("inputUnits1") as HTMLInputElement;
+    if (el) {
+      el.value = units;
+      el.focus();
+      onInputChange(units);
+    }
+  };
+
+  const onInputChange = (inputValue: string) => {
+    const weiInput = convertToWei(inputValue);
+    if (BN(weiInput).isGreaterThan(0)) {
+      const queryUrl =
+        "https://api.1inch.io/v5.0/56/quote?fromTokenAddress=" +
+        selectedAsset1.address +
+        "&toTokenAddress=" +
+        selectedAsset2.address +
+        "&amount=" +
+        weiInput;
+      setLoading(true);
+      fetch(queryUrl)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          setOutputAmount(convertFromWei(data.toTokenAmount));
+          setLoading(false);
+        });
+    } else {
+      setOutputAmount("0.00");
+    }
   };
 
   return (
@@ -54,8 +98,8 @@ const Swap: NextPage = () => {
           <li id="first" className="col-span-1 divide-y divide-gray-200">
             <div className="mx-auto h-full overflow-hidden rounded-lg bg-white shadow">
               <div id="assetSection1" className="grid grid-cols-2 p-3">
-                <div>Sell:</div>
-                <div className="justify-self-end">
+                <div className="w-max">Sell:</div>
+                <div className="w-max justify-self-end">
                   {address ? (
                     <>
                       Balance:{" "}
@@ -65,7 +109,12 @@ const Swap: NextPage = () => {
                       <span
                         className="ml-1 inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
                         role="button"
-                        // onClick={() => TODO: Update input1 to max balance available }
+                        onClick={() =>
+                          assetBalance1.data &&
+                          setInput(
+                            convertFromWei(assetBalance1.data.value.toString())
+                          )
+                        }
                       >
                         MAX
                       </span>
@@ -77,7 +126,7 @@ const Swap: NextPage = () => {
                 <div
                   onClick={() => toggleAssetSelectOpen(1)}
                   role="button"
-                  className="py-2"
+                  className="w-max py-2"
                 >
                   <span>
                     <img
@@ -88,20 +137,21 @@ const Swap: NextPage = () => {
                     <div className="ml-2 inline">{selectedAsset1.ticker}</div>
                   </span>
                 </div>
-                <div className="justify-self-end py-2">
+                <div className="w-max justify-self-end py-2">
                   <input
                     placeholder="Buy Units"
                     className="text-right"
                     id="inputUnits1"
+                    onChange={(e) => onInputChange(e.target.value)}
                   />
                   <XCircleIcon
                     className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
                     aria-hidden="true"
                     role="button"
-                    // onClick={() => TODO: Clear input1 }
+                    onClick={() => setInput("")}
                   />
                 </div>
-                <div>
+                <div className="w-max">
                   {shortenString(selectedAsset1.address)}
                   <span>
                     <DocumentDuplicateIcon
@@ -118,11 +168,11 @@ const Swap: NextPage = () => {
                     />
                   </span>
                 </div>
-                <div className="justify-self-end">Rate: ??</div>
+                <div className="w-max justify-self-end">Rate: ??</div>
               </div>
               <div id="assetSection2" className="grid grid-cols-2 p-3">
-                <div>Buy:</div>
-                <div className="justify-self-end">
+                <div className="w-max">Buy:</div>
+                <div className="w-max justify-self-end">
                   {address ? (
                     <>
                       Balance:{" "}
@@ -137,7 +187,7 @@ const Swap: NextPage = () => {
                 <div
                   onClick={() => toggleAssetSelectOpen(2)}
                   role="button"
-                  className="py-2"
+                  className="w-max py-2"
                 >
                   <span>
                     <img
@@ -148,16 +198,16 @@ const Swap: NextPage = () => {
                     <div className="ml-2 inline">{selectedAsset2.ticker}</div>
                   </span>
                 </div>
-                <div className="justify-self-end py-2">
+                <div className="w-max justify-self-end py-2">
                   <input
                     placeholder="Sell Units"
                     className="text-right"
                     id="inputUnits2"
+                    value={outputAmount}
                     disabled
                   />
                 </div>
-                <div>
-                  {" "}
+                <div className="w-max">
                   {shortenString(selectedAsset2.address)}
                   <span>
                     <DocumentDuplicateIcon
@@ -174,7 +224,7 @@ const Swap: NextPage = () => {
                     />
                   </span>
                 </div>
-                <div className="justify-self-end">Rate: ??</div>
+                <div className="w-max justify-self-end">Rate: ??</div>
               </div>
               <div className="w-full border-t border-gray-300" />
               <div id="swapInfoSection" className="p-3">
