@@ -1,14 +1,16 @@
 import type { NextPage } from "next";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AssetSelect, { bnbAsset, spartaAsset } from "../components/assetSelect";
 import PageHeading from "../components/pageHeading";
 import {
+  ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
   DocumentDuplicateIcon,
   XCircleIcon,
 } from "@heroicons/react/20/solid";
 import {
   BN,
+  classNames,
   convertFromWei,
   convertToWei,
   formatFromWei,
@@ -19,6 +21,7 @@ import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
 import type { AssetProps } from "../components/assetSelect";
+import { gasDefault } from "../utils/const";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -32,6 +35,7 @@ const Swap: NextPage = () => {
   const [selectedAsset1, setSelectedAsset1] = useState<AssetProps>(bnbAsset);
   const [selectedAsset2, setSelectedAsset2] = useState<AssetProps>(spartaAsset);
   const [isLoading, setLoading] = useState(false);
+  const [inputAmount, setInputAmount] = useState("0");
   const [outputAmount, setOutputAmount] = useState("0.00");
 
   const assetBalance1 = useBalance({
@@ -48,41 +52,63 @@ const Swap: NextPage = () => {
     setassetSelectOpen(true);
   };
 
-  useEffect(() => {
-    setInput("");
-  }, [selectedAsset1, selectedAsset2]);
+  const onInputChange = useCallback(
+    (inputValue: string) => {
+      const weiInput = convertToWei(inputValue);
+      if (BN(weiInput).isGreaterThan(0)) {
+        const queryUrl =
+          "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+          selectedAsset1.address +
+          "&toTokenAddress=" +
+          selectedAsset2.address +
+          "&amount=" +
+          weiInput +
+          "&gasPrice=" +
+          gasDefault;
+        setLoading(true);
+        fetch(queryUrl)
+          .then((res) => res.json())
+          .then((data) => {
+            console.log(data);
+            setOutputAmount(convertFromWei(data.toTokenAmount));
+            setLoading(false);
+          });
+      } else {
+        setInputAmount("");
+        setOutputAmount("0.00");
+      }
+    },
+    [selectedAsset1.address, selectedAsset2.address]
+  );
 
-  const setInput = (units: string) => {
+  const setInput = useCallback((units: string) => {
     const el = document.getElementById("inputUnits1") as HTMLInputElement;
     if (el) {
+      setInputAmount(units);
       el.value = units;
       el.focus();
-      onInputChange(units);
     }
-  };
+  }, []);
 
-  const onInputChange = (inputValue: string) => {
-    const weiInput = convertToWei(inputValue);
-    if (BN(weiInput).isGreaterThan(0)) {
-      const queryUrl =
-        "https://api.1inch.io/v5.0/56/quote?fromTokenAddress=" +
-        selectedAsset1.address +
-        "&toTokenAddress=" +
-        selectedAsset2.address +
-        "&amount=" +
-        weiInput;
-      setLoading(true);
-      fetch(queryUrl)
-        .then((res) => res.json())
-        .then((data) => {
-          console.log(data);
-          setOutputAmount(convertFromWei(data.toTokenAmount));
-          setLoading(false);
-        });
-    } else {
-      setOutputAmount("0.00");
-    }
-  };
+  /** Get new rate/quote every x seconds with a debounce delay to reduce API calls
+   * Clear & re-calc whenever the inputAmount or selectedAssets change
+   */
+  useEffect(() => {
+    const debounceDelay = 500;
+    const intervalDelay = 10000;
+    const timeOutId = setTimeout(
+      () => onInputChange(inputAmount),
+      debounceDelay
+    );
+    const interval = setInterval(
+      () => onInputChange(inputAmount),
+      intervalDelay
+    );
+    return () => {
+      clearTimeout(timeOutId);
+      clearInterval(interval);
+    };
+  }, [inputAmount, onInputChange, selectedAsset1, selectedAsset2]);
 
   return (
     <>
@@ -142,7 +168,7 @@ const Swap: NextPage = () => {
                     placeholder="Buy Units"
                     className="text-right"
                     id="inputUnits1"
-                    onChange={(e) => onInputChange(e.target.value)}
+                    onChange={(e) => setInputAmount(e.target.value)}
                   />
                   <XCircleIcon
                     className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
@@ -194,6 +220,8 @@ const Swap: NextPage = () => {
                       src={selectedAsset2.logo}
                       alt=""
                       className="inline h-6 w-6 flex-none rounded-full"
+                      role="button"
+                      onClick={() => setInput("")}
                     />
                     <div className="ml-2 inline">{selectedAsset2.ticker}</div>
                   </span>
@@ -205,6 +233,15 @@ const Swap: NextPage = () => {
                     id="inputUnits2"
                     value={outputAmount}
                     disabled
+                  />
+                  <ArrowPathIcon
+                    className={classNames(
+                      "ml-1 inline h-5 w-5 text-gray-700",
+                      isLoading ? "animate-spin" : ""
+                    )}
+                    aria-hidden="true"
+                    role="button"
+                    onClick={() => onInputChange(inputAmount)}
                   />
                 </div>
                 <div className="w-max">

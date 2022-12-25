@@ -93,6 +93,7 @@ export const formatShortNumber = (unitString: string): [string, string] => {
   return [shortNumb.toFormat(2), letterLabel];
 };
 
+/** Format to ... padded middle of string. ie. 0x00000000000000 -> 0x0...000 */
 export const shortenString = (string: string): string => {
   if (string.length > 9) {
     const first = string.slice(0, 4);
@@ -102,6 +103,7 @@ export const shortenString = (string: string): string => {
   return string;
 };
 
+/** Concat classNames */
 export const classNames = (...classes: string[]) => {
   return classes.join(" ");
 };
