@@ -20,9 +20,12 @@ import { useAccount, useBalance } from "wagmi";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
-import type { AssetProps } from "../components/assetSelect";
 import { gasDefault } from "../utils/const";
 import WalletModal from "../components/wallet/walletModal";
+import SwapRatesTable from "../components/swap/swapRatesTable";
+import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
+
+import type { AssetProps } from "../components/assetSelect";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -36,6 +39,7 @@ const Swap: NextPage = () => {
   const [assetId, setassetId] = useState<AssetIdProps>(1);
   const [selectedAsset1, setSelectedAsset1] = useState<AssetProps>(bnbAsset);
   const [selectedAsset2, setSelectedAsset2] = useState<AssetProps>(spartaAsset);
+  const [selectedSource, setSelectedSource] = useState<string>("");
   const [isLoading, setLoading] = useState(false);
   const [inputAmount, setInputAmount] = useState("0");
   const [outputAmount, setOutputAmount] = useState("0.00");
@@ -59,9 +63,10 @@ const Swap: NextPage = () => {
   };
 
   const onInputChange = useCallback(
-    (inputValue: string) => {
+    async (inputValue: string) => {
       const weiInput = convertToWei(inputValue);
       if (BN(weiInput).isGreaterThan(0)) {
+        setLoading(true);
         const queryUrl =
           "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
           selectedAsset1.address +
@@ -71,7 +76,6 @@ const Swap: NextPage = () => {
           weiInput +
           "&gasPrice=" +
           gasDefault;
-        setLoading(true);
         fetch(queryUrl)
           .then((res) => res.json())
           .then((data) => {
@@ -79,6 +83,7 @@ const Swap: NextPage = () => {
             setOutputAmount(convertFromWei(data.toTokenAmount));
             setLoading(false);
           });
+        setLoading(false);
       } else {
         setInputAmount("");
         setOutputAmount("0.00");
@@ -177,7 +182,7 @@ const Swap: NextPage = () => {
               </div>
               <div className="w-max justify-self-end py-2">
                 <input
-                  placeholder="Buy Units"
+                  placeholder="0"
                   className="text-right"
                   id="inputUnits1"
                   onChange={(e) => setInputAmount(e.target.value)}
@@ -206,7 +211,12 @@ const Swap: NextPage = () => {
                   />
                 </span>
               </div>
-              <div className="w-max justify-self-end">Rate: ??</div>
+              <div className="w-max justify-self-end">
+                ~$0.00{" "}
+                <div className="inline-block h-4 w-4 align-middle">
+                  <CoinGeckoLogoTemp />
+                </div>
+              </div>
             </div>
             <div id="assetSection2" className="grid grid-cols-2 p-3">
               <div className="w-max">Buy:</div>
@@ -253,7 +263,7 @@ const Swap: NextPage = () => {
                 />
                 <ArrowPathIcon
                   className={classNames(
-                    "ml-1 inline h-5 w-5 text-gray-700",
+                    "ml-1 mb-1 inline h-5 w-5 text-gray-700",
                     isLoading ? "animate-spin" : ""
                   )}
                   aria-hidden="true"
@@ -278,19 +288,32 @@ const Swap: NextPage = () => {
                   />
                 </span>
               </div>
-              <div className="w-max justify-self-end">Rate: ??</div>
+              <div className="w-max justify-self-end">
+                ~$0.00{" "}
+                <div className="inline-block h-4 w-4 align-middle">
+                  <CoinGeckoLogoTemp />
+                </div>
+              </div>
             </div>
             <div className="w-full border-t border-gray-300" />
             <div id="swapInfoSection" className="p-3">
-              <span>Rate</span>
-              <span className="float-right">Fees</span>
-              <div>PCS Comparison Rate</div>
-              <div>Simple Route Info</div>
+              <div className="text-md font-medium">
+                <SwapRatesTable
+                  setSelectedSource={setSelectedSource}
+                  selectedSource={selectedSource}
+                  sources={swapSources}
+                />
+              </div>
             </div>
           </div>
 
           <div className="">
-            <SwapSidePanel />
+            <SwapSidePanel
+              selectedSource={selectedSource}
+              selectedAsset1={selectedAsset1}
+              selectedAsset2={selectedAsset2}
+              inputAmount={inputAmount}
+            />
           </div>
         </ul>
       </PageWrap>

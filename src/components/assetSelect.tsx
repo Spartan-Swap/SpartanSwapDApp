@@ -18,8 +18,6 @@ export type AssetSelectProps = {
   setOpen: (value: boolean) => void;
 };
 
-type AllowedTags = "Native Coin" | "Non-Native Coin" | "Token" | "Stablecoin";
-
 export type AssetProps = {
   name: string;
   ticker: string;
@@ -27,17 +25,19 @@ export type AssetProps = {
   site: string;
   decimals: number;
   logo: string;
-  tags: AllowedTags[];
+  peg: string;
+  type: "Token" | "Native Coin";
 };
 
 export const bnbAsset: AssetProps = {
-  name: "Wrapped BNB",
-  ticker: "WBNB",
-  address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+  name: "BNB",
+  ticker: "BNB",
+  address: "0x0000000000000000000000000000000000000000",
   site: "https://www.binance.org/",
   decimals: 18,
   logo: "https://bscscan.com/token/images/binance_32.png",
-  tags: ["Native Coin"],
+  peg: "",
+  type: "Native Coin",
 };
 
 export const spartaAsset: AssetProps = {
@@ -47,12 +47,23 @@ export const spartaAsset: AssetProps = {
   site: "https://spartanprotocol.org/",
   decimals: 18,
   logo: "https://bscscan.com/token/images/spartan2_32.png",
-  tags: ["Token"],
+  peg: "",
+  type: "Token",
 };
 
 export const assets: AssetProps[] = [
   bnbAsset,
   spartaAsset,
+  {
+    name: "Wrapped BNB",
+    ticker: "WBNB",
+    address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+    site: "https://www.binance.org/",
+    decimals: 18,
+    logo: "https://bscscan.com/token/images/binance_32.png",
+    peg: "BNB",
+    type: "Token",
+  },
   {
     name: "Trust Wallet Token",
     ticker: "TWT",
@@ -60,7 +71,8 @@ export const assets: AssetProps[] = [
     site: "https://trustwallet.com/",
     decimals: 18,
     logo: "https://bscscan.com/token/images/trust_32.png",
-    tags: ["Token"],
+    peg: "",
+    type: "Token",
   },
   {
     name: "Binance-Peg BUSD Token",
@@ -69,7 +81,8 @@ export const assets: AssetProps[] = [
     site: "https://www.binance.com/en/busd",
     decimals: 18,
     logo: "https://bscscan.com/token/images/busd_32_2.png",
-    tags: ["Token", "Stablecoin"],
+    peg: "USD",
+    type: "Token",
   },
   {
     name: "Binance-Peg USD Coin",
@@ -78,7 +91,8 @@ export const assets: AssetProps[] = [
     site: "https://www.centre.io/",
     decimals: 18,
     logo: "https://bscscan.com/token/images/centre-usdc_28.png",
-    tags: ["Token", "Stablecoin"],
+    peg: "USD",
+    type: "Token",
   },
   {
     name: "Binance-Peg BSC-USD",
@@ -87,7 +101,8 @@ export const assets: AssetProps[] = [
     site: "https://tether.to/en/",
     decimals: 18,
     logo: "https://bscscan.com/token/images/busdt_32.png",
-    tags: ["Token", "Stablecoin"],
+    peg: "USD",
+    type: "Token",
   },
   {
     name: "Binance-Peg BTCB Token",
@@ -96,7 +111,18 @@ export const assets: AssetProps[] = [
     site: "https://bitcoin.org/en/",
     decimals: 18,
     logo: "https://bscscan.com/token/images/btcb_32.png",
-    tags: ["Non-Native Coin"],
+    peg: "BTC",
+    type: "Token",
+  },
+  {
+    name: "Raven Protocol",
+    ticker: "RAVEN",
+    address: "0xcD7C5025753a49f1881B31C48caA7C517Bb46308",
+    site: "https://www.ravenprotocol.com/",
+    decimals: 18,
+    logo: "https://bscscan.com/token/images/raven_32.png",
+    peg: "",
+    type: "Token",
   },
   // More assets...
 ];
@@ -287,6 +313,14 @@ export default function AssetSelect({
                               </span>
                             </div>
                             <div className="flex flex-auto flex-col justify-between p-6">
+                              <div className="text-sm text-gray-400">
+                                {selectedAsset.ticker} is a {selectedAsset.type}{" "}
+                                on the BNB Smartchain network{" "}
+                                {selectedAsset.peg !== "" &&
+                                  "that is pegged to " +
+                                    selectedAsset.peg +
+                                    " asset price"}
+                              </div>
                               <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm text-gray-400">
                                 <dt className="col-end-1 font-semibold text-gray-300">
                                   URL

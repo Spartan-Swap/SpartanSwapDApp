@@ -1,15 +1,45 @@
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { classNames } from "../../utils/formatting";
+import { swapSources, spartanProtocolSource } from "../../utils/swapSources";
 
-const tabs: string[] = ["Route Info", "Price Chart"];
+import type { SwapSourceProps } from "../../utils/swapSources";
+import type { AssetProps } from "../assetSelect";
 
-export function SwapSidePanel() {
+const tabs: string[] = ["Swap Details", "Price Chart"];
+
+type SwapSidePanelProps = {
+  selectedSource: string;
+  selectedAsset1: AssetProps;
+  selectedAsset2: AssetProps;
+  inputAmount: string;
+};
+
+export function SwapSidePanel({
+  selectedSource,
+  selectedAsset1,
+  selectedAsset2,
+  inputAmount,
+}: SwapSidePanelProps) {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
+  const [sourceInfo, setSourceInfo] = useState<SwapSourceProps>(
+    spartanProtocolSource
+  );
 
   const toggleSelectedTab = (newTab: string) => {
     setSelectedTab(tabs.find((tab) => tab === newTab));
   };
+
+  useEffect(() => {
+    const _source = swapSources.filter(
+      (source) => source.id === selectedSource
+    )[0];
+    if (_source) {
+      setSourceInfo(_source);
+    } else {
+      setSourceInfo(spartanProtocolSource);
+    }
+  }, [selectedSource]);
 
   return (
     <div id="swapInfoSection" className="p-3">
@@ -59,7 +89,32 @@ export function SwapSidePanel() {
           </nav>
         </div>
       </div>
-      {selectedTab === tabs[0] && <div>Route Info Component</div>}
+      {selectedTab === tabs[0] && (
+        <div className="py-2">
+          <div>
+            <img
+              src={sourceInfo.imagelg}
+              alt=""
+              className="inline h-14 flex-none"
+            />
+          </div>
+          <div className="py-2" />
+          <div className="">
+            The selected swap provider is {sourceInfo.name}
+          </div>
+          <div className="py-2" />
+          <div className="">
+            Your {inputAmount} {selectedAsset1.ticker} will route via these
+            pools:
+          </div>
+          <div className="">*Route Chart*</div>
+          <div className="py-2" />
+          <div className="">
+            Estimated receiving: 00,000.00 {selectedAsset2.ticker}
+          </div>
+          <div className="">Estimated gas cost: ~0.00000 BNB</div>
+        </div>
+      )}
       {selectedTab === tabs[1] && <div>Price Chart Component</div>}
     </div>
   );
