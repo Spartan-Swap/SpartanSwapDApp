@@ -68,6 +68,7 @@ export type SwapSourceProps = {
   imagesq: string;
   imagelg: string;
   outputAmount: string;
+  error: string;
 };
 
 export const spartanProtocolSource: SwapSourceProps = {
@@ -79,18 +80,22 @@ export const spartanProtocolSource: SwapSourceProps = {
   imagelg:
     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/sparta-text-short.svg",
   outputAmount: "0",
+  error: "",
+};
+
+export const oneInchSource: SwapSourceProps = {
+  id: "1INCH",
+  name: "1-inch Network",
+  type: "Swap Aggregator",
+  imagesq: "https://cryptologos.cc/logos/1inch-1inch-logo.svg",
+  imagelg: "https://1inch.io/img/pressRoom/logo.svg",
+  outputAmount: "0",
+  error: "",
 };
 
 export const swapSources: SwapSourceProps[] = [
   spartanProtocolSource,
-  {
-    id: "1INCH",
-    name: "1-inch Network",
-    type: "Swap Aggregator",
-    imagesq: "https://cryptologos.cc/logos/1inch-1inch-logo.svg",
-    imagelg: "https://1inch.io/img/pressRoom/logo.svg",
-    outputAmount: "0",
-  },
+  oneInchSource,
   {
     id: "PCS",
     name: "PancakeSwap",
@@ -98,5 +103,36 @@ export const swapSources: SwapSourceProps[] = [
     imagesq: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
     imagelg: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
     outputAmount: "0",
+    error: "",
   },
 ];
+
+export type Provider1InchProps = {
+  fromToken: {
+    symbol: string; // "WBNB",
+    name: string; // "Wrapped BNB";
+    decimals: number; // 18;
+    address: string; // "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
+    logoURI: string; // "https://tokens.1inch.io/0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c_1.png";
+    tags: string[]; // ["tokens", "PEG:BNB"];
+  };
+  toToken: {
+    symbol: string; // "SPARTA";
+    name: string; // "Spartan Protocol Token";
+    decimals: number; // 18;
+    address: string; // "0x3910db0600ea925f63c36ddb1351ab6e2c6eb102";
+    logoURI: string; // "https://tokens.1inch.io/0x3910db0600ea925f63c36ddb1351ab6e2c6eb102.png";
+    tags: string[]; // ["tokens"];
+  };
+  toTokenAmount: string; // "20645979163629502219486";
+  fromTokenAmount: string; // "1000000000000000000";
+  protocols: [
+    {
+      name: string; // "BSC_PMM3";
+      part: number; // 100
+      fromTokenAddress: string; // "0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c";
+      toTokenAddress: string; // "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d";
+    }
+  ];
+  estimatedGas: number; // 893808;
+};

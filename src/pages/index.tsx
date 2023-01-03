@@ -26,6 +26,7 @@ import SwapRatesTable from "../components/swap/swapRatesTable";
 import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
 
 import type { AssetProps } from "../components/assetSelect";
+import type { SwapSourceProps } from "../utils/swapSources";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -39,6 +40,7 @@ const Swap: NextPage = () => {
   const [assetId, setassetId] = useState<AssetIdProps>(1);
   const [selectedAsset1, setSelectedAsset1] = useState<AssetProps>(bnbAsset);
   const [selectedAsset2, setSelectedAsset2] = useState<AssetProps>(spartaAsset);
+  const [allSources, setAllSources] = useState<SwapSourceProps[]>(swapSources);
   const [selectedSource, setSelectedSource] = useState<string>("");
   const [isLoading, setLoading] = useState(false);
   const [inputAmount, setInputAmount] = useState("0");
@@ -62,34 +64,65 @@ const Swap: NextPage = () => {
     setassetSelectOpen(true);
   };
 
+  useEffect(() => {
+    const _item = allSources.find((x) => x.id === selectedSource);
+    if (_item) {
+      setOutputAmount(_item.outputAmount);
+    }
+  }, [selectedSource, allSources]);
+
+  const changeSourceValue = useCallback(
+    (id: string, propName: string, newValue: string) => {
+      setAllSources((prev) =>
+        prev.map((item) =>
+          item.id === id ? { ...item, [propName]: newValue } : item
+        )
+      );
+    },
+    []
+  );
+
+  const get1InchData = useCallback(
+    (weiInput: string) => {
+      const queryUrl =
+        "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+        selectedAsset1.address +
+        "&toTokenAddress=" +
+        selectedAsset2.address +
+        "&amount=" +
+        weiInput +
+        "&gasPrice=" +
+        gasDefault;
+      fetch(queryUrl)
+        .then((response) => response.json())
+        .then((data) => {
+          if (data.error) {
+            changeSourceValue("1INCH", "outputAmount", "0");
+            changeSourceValue("1INCH", "error", data.error);
+          } else {
+            changeSourceValue("1INCH", "outputAmount", data.toTokenAmount);
+            changeSourceValue("1INCH", "error", "");
+          }
+        });
+    },
+    [changeSourceValue, selectedAsset1.address, selectedAsset2.address]
+  );
+
   const onInputChange = useCallback(
     async (inputValue: string) => {
       const weiInput = convertToWei(inputValue);
       if (BN(weiInput).isGreaterThan(0)) {
-        setLoading(true);
-        const queryUrl =
-          "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
-          selectedAsset1.address +
-          "&toTokenAddress=" +
-          selectedAsset2.address +
-          "&amount=" +
-          weiInput +
-          "&gasPrice=" +
-          gasDefault;
-        fetch(queryUrl)
-          .then((res) => res.json())
-          .then((data) => {
-            console.log(data);
-            setOutputAmount(convertFromWei(data.toTokenAmount));
-            setLoading(false);
-          });
+        // If chainId === 56 (BSC)
+        get1InchData(weiInput);
+        // If chainId === eth
+        // If chainId === etc.etc.etc
         setLoading(false);
       } else {
         setInputAmount("");
-        setOutputAmount("0.00");
+        setAllSources(swapSources);
       }
     },
-    [selectedAsset1.address, selectedAsset2.address]
+    [get1InchData]
   );
 
   const setInput = useCallback((units: string) => {
@@ -119,7 +152,8 @@ const Swap: NextPage = () => {
       clearTimeout(timeOutId);
       clearInterval(interval);
     };
-  }, [inputAmount, onInputChange, selectedAsset1, selectedAsset2]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inputAmount, selectedAsset1, selectedAsset2]);
 
   return (
     <>
@@ -258,7 +292,7 @@ const Swap: NextPage = () => {
                   placeholder="Sell Units"
                   className="text-right"
                   id="inputUnits2"
-                  value={outputAmount}
+                  value={convertFromWei(outputAmount)}
                   disabled
                 />
                 <ArrowPathIcon
@@ -299,9 +333,10 @@ const Swap: NextPage = () => {
             <div id="swapInfoSection" className="p-3">
               <div className="text-md font-medium">
                 <SwapRatesTable
+                  sources={allSources}
                   setSelectedSource={setSelectedSource}
                   selectedSource={selectedSource}
-                  sources={swapSources}
+                  selectedAsset2={selectedAsset2}
                 />
               </div>
             </div>
