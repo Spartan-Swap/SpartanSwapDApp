@@ -27,6 +27,8 @@ import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
 
 import type { AssetProps } from "../components/assetSelect";
 import type { SwapSourceProps } from "../utils/swapSources";
+import Image from "next/image";
+import AssetSelectButton from "../components/swap/assetSelectButton";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -200,20 +202,12 @@ const Swap: NextPage = () => {
                   </span>
                 )}
               </div>
-              <div
-                onClick={() => toggleAssetSelectOpen(1)}
-                role="button"
-                className="w-max py-2"
-              >
-                <span>
-                  <img
-                    src={selectedAsset1.logo}
-                    alt=""
-                    className="inline h-6 w-6 flex-none rounded-full"
-                  />
-                  <div className="ml-2 inline">{selectedAsset1.ticker}</div>
-                </span>
-              </div>
+              <AssetSelectButton
+                handleToggleOpen={toggleAssetSelectOpen}
+                assetNumber={1}
+                assetLogo={selectedAsset1.logo}
+                assetTicker={selectedAsset1.ticker}
+              />
               <div className="w-max justify-self-end py-2">
                 <input
                   placeholder="0"
@@ -272,21 +266,12 @@ const Swap: NextPage = () => {
                   </span>
                 )}
               </div>
-              <div
-                onClick={() => toggleAssetSelectOpen(2)}
-                role="button"
-                className="w-max py-2"
-              >
-                <span>
-                  <img
-                    src={selectedAsset2.logo}
-                    alt=""
-                    className="inline h-6 w-6 flex-none rounded-full"
-                    role="button"
-                  />
-                  <div className="ml-2 inline">{selectedAsset2.ticker}</div>
-                </span>
-              </div>
+              <AssetSelectButton
+                handleToggleOpen={toggleAssetSelectOpen}
+                assetNumber={2}
+                assetLogo={selectedAsset2.logo}
+                assetTicker={selectedAsset2.ticker}
+              />
               <div className="w-max justify-self-end py-2">
                 <input
                   placeholder="Sell Units"
@@ -342,14 +327,12 @@ const Swap: NextPage = () => {
             </div>
           </div>
 
-          <div className="">
-            <SwapSidePanel
-              selectedSource={selectedSource}
-              selectedAsset1={selectedAsset1}
-              selectedAsset2={selectedAsset2}
-              inputAmount={inputAmount}
-            />
-          </div>
+          <SwapSidePanel
+            selectedSource={selectedSource}
+            selectedAsset1={selectedAsset1}
+            selectedAsset2={selectedAsset2}
+            inputAmount={inputAmount}
+          />
         </ul>
       </PageWrap>
     </>

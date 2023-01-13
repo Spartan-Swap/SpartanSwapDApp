@@ -8,6 +8,7 @@ import { useConnect } from "wagmi";
 
 import type { WalletProps } from "./client";
 import { classNames } from "../../utils/formatting";
+import Image from "next/image";
 
 // TODO: Make this use-able on mobile (show inline 'connect' button on mobile but make sure active state is handled correctly)
 export default function WalletSelect() {
@@ -81,14 +82,17 @@ export default function WalletSelect() {
                       >
                         {({ selected }) => (
                           <>
-                            <img
-                              src={wallet.logo}
-                              alt=""
-                              className="h-6 w-6 flex-none rounded-full"
-                            />
-                            <span className="ml-3 flex-auto truncate">
+                            <div className="relative h-6 w-6 flex-none rounded-full">
+                              <Image
+                                alt=""
+                                src={wallet.logo}
+                                fill
+                                className="object-contain"
+                              />
+                            </div>
+                            <div className="ml-3 flex-auto truncate">
                               {wallet.name}
-                            </span>
+                            </div>
                             {selected && (
                               <ChevronRightIcon
                                 className="ml-3 hidden h-5 w-5 flex-none text-gray-300 sm:block"
@@ -105,11 +109,14 @@ export default function WalletSelect() {
                 {selectedWallet && (
                   <div className="hidden h-96 w-1/2 flex-none flex-col divide-y divide-gray-500 divide-opacity-20 overflow-y-auto sm:flex">
                     <div className="flex-none p-6 text-center">
-                      <img
-                        src={selectedWallet.logo}
-                        alt=""
-                        className="mx-auto h-16 w-16 rounded-full"
-                      />
+                      <div className="relative mx-auto h-16 w-16 rounded-full">
+                        <Image
+                          alt=""
+                          src={selectedWallet.logo}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
                       <h2 className="mt-3 font-semibold text-gray-300">
                         {selectedWallet.name}
                       </h2>

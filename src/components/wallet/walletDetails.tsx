@@ -13,6 +13,7 @@ import { assets } from "../assetSelect";
 
 import type { AssetProps } from "../assetSelect";
 import { classNames, shortenString } from "../../utils/formatting";
+import Image from "next/image";
 
 const recent = [assets[1], assets[3], assets[2]];
 
@@ -74,7 +75,7 @@ export function WalletDetails() {
                     {(query === "" ? recent : filteredAssets).map((asset) => (
                       <Combobox.Option
                         as="div"
-                        key={asset?.id}
+                        key={asset?.name}
                         value={asset}
                         className={({ active }) =>
                           classNames(
@@ -85,19 +86,26 @@ export function WalletDetails() {
                       >
                         {({ active }) => (
                           <>
-                            <img
-                              src={asset?.logo}
-                              alt=""
-                              className="h-6 w-6 flex-none rounded-full"
-                            />
-                            <span className="ml-3 flex-auto truncate">
-                              {asset?.name}
-                            </span>
-                            {active && (
-                              <ChevronRightIcon
-                                className="ml-3 h-5 w-5 flex-none text-gray-300"
-                                aria-hidden="true"
-                              />
+                            {asset && (
+                              <>
+                                <div className="relative h-6 w-6 rounded-full">
+                                  <Image
+                                    alt=""
+                                    src={asset.logo}
+                                    fill
+                                    className="object-contain"
+                                  />
+                                </div>
+                                <div className="ml-3 flex-auto truncate">
+                                  {asset.name}
+                                </div>
+                                {active && (
+                                  <ChevronRightIcon
+                                    className="ml-3 h-5 w-5 flex-none text-gray-300"
+                                    aria-hidden="true"
+                                  />
+                                )}
+                              </>
                             )}
                           </>
                         )}
@@ -109,11 +117,14 @@ export function WalletDetails() {
                 <div className="hidden h-96 w-1/2 flex-none flex-col divide-y divide-gray-500 divide-opacity-20 overflow-y-auto sm:flex">
                   <div className="flex-none p-6 text-center">
                     {ensAvatar && (
-                      <img
-                        src={ensAvatar}
-                        alt="ENS Avatar"
-                        className="mx-auto h-16 w-16 rounded-full"
-                      />
+                      <div className="relative mx-auto h-16 w-16 rounded-full">
+                        <Image
+                          alt="ENS Avatar"
+                          src={ensAvatar}
+                          fill
+                          className="object-contain"
+                        />
+                      </div>
                     )}
                     <h2 className="mt-3 font-semibold text-gray-300">
                       {ensName}
