@@ -16,7 +16,7 @@ import {
   formatFromWei,
   shortenString,
 } from "../utils/formatting";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount, useBalance, useProvider } from "wagmi";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
@@ -27,7 +27,6 @@ import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
 
 import type { AssetProps } from "../components/assetSelect";
 import type { SwapSourceProps } from "../utils/swapSources";
-import Image from "next/image";
 import AssetSelectButton from "../components/swap/assetSelectButton";
 export type AssetIdProps = 1 | 2;
 
@@ -36,6 +35,7 @@ const button2 = { label: "Docs?", link: "./" };
 
 const Swap: NextPage = () => {
   const { address } = useAccount();
+  const provider = useProvider();
 
   const [walletOpen, setWalletOpen] = useState(false);
   const [assetSelectOpen, setassetSelectOpen] = useState<boolean>(false);
@@ -84,6 +84,45 @@ const Swap: NextPage = () => {
     []
   );
 
+  const getSpartanProtocolData = useCallback(
+    async (weiInput: string) => {
+      return weiInput; // TODO: Remove this placeholder when done
+
+      // TODO: Get SSUtils contract object
+      // const routerSPV2Contract = new Contract(
+      //   routerSPV2ContractAddr,
+      //   routerSPV2Abi.abi,
+      //   provider
+      // );
+      // console.log(routerSPV2Contract);
+
+      // TODO: Call SSUTILS.getSwapOutput(address inputToken, address outputToken, uint256 inputAmount)
+      // if (routerSPV2Contract) {
+      //   const _staticCall = await routerSPV2Contract.callStatic.swapTo!(
+      //     weiInput,
+      //     selectedAsset1.address,
+      //     selectedAsset2.address,
+      //     address,
+      //     "0"
+      //   );
+      //   console.log(_staticCall);
+      // }
+
+      // TODO: Format same as the 1inch one
+      // .then((response) => response.json())
+      // .then((data) => {
+      //   if (data.error) {
+      //     changeSourceValue("SPV2", "outputAmount", "0");
+      //     changeSourceValue("SPV2", "error", data.error);
+      //   } else {
+      //     changeSourceValue("SPV2", "outputAmount", data.toTokenAmount);
+      //     changeSourceValue("SPV2", "error", "");
+      //   }
+      // });
+    },
+    []
+  );
+
   const get1InchData = useCallback(
     (weiInput: string) => {
       const queryUrl =
@@ -115,6 +154,7 @@ const Swap: NextPage = () => {
       const weiInput = convertToWei(inputValue);
       if (BN(weiInput).isGreaterThan(0)) {
         // If chainId === 56 (BSC)
+        getSpartanProtocolData(weiInput);
         get1InchData(weiInput);
         // If chainId === eth
         // If chainId === etc.etc.etc
@@ -124,7 +164,7 @@ const Swap: NextPage = () => {
         setAllSources(swapSources);
       }
     },
-    [get1InchData]
+    [get1InchData, getSpartanProtocolData]
   );
 
   const setInput = useCallback((units: string) => {

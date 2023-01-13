@@ -3,7 +3,6 @@ import { formatFromWei } from "../../utils/formatting";
 
 import type { SwapSourceProps } from "../../utils/swapSources";
 import type { AssetProps } from "../assetSelect";
-import Image from "next/image";
 
 type SwapRatesTableProps = {
   sources: SwapSourceProps[];

@@ -5,7 +5,6 @@ import { swapSources, spartanProtocolSource } from "../../utils/swapSources";
 
 import type { SwapSourceProps } from "../../utils/swapSources";
 import type { AssetProps } from "../assetSelect";
-import Image from "next/image";
 
 const tabs: string[] = ["Swap Details", "Price Chart"];
 
