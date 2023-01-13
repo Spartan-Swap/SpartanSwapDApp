@@ -20,14 +20,16 @@ import { useAccount, useBalance, useProvider } from "wagmi";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
-import { gasDefault } from "../utils/const";
+import { gasDefault, ssUtilsAddress } from "../utils/const";
 import WalletModal from "../components/wallet/walletModal";
 import SwapRatesTable from "../components/swap/swapRatesTable";
 import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
+import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
 
 import type { AssetProps } from "../components/assetSelect";
 import type { SwapSourceProps } from "../utils/swapSources";
 import AssetSelectButton from "../components/swap/assetSelectButton";
+import { Contract } from "ethers";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -35,7 +37,7 @@ const button2 = { label: "Docs?", link: "./" };
 
 const Swap: NextPage = () => {
   const { address } = useAccount();
-  const provider = useProvider();
+  const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
   const [walletOpen, setWalletOpen] = useState(false);
   const [assetSelectOpen, setassetSelectOpen] = useState<boolean>(false);
@@ -86,41 +88,36 @@ const Swap: NextPage = () => {
 
   const getSpartanProtocolData = useCallback(
     async (weiInput: string) => {
-      return weiInput; // TODO: Remove this placeholder when done
+      const quoteSPV2Contract = new Contract(
+        ssUtilsAddress,
+        ssUtilsAbi.abi,
+        provider
+      );
 
-      // TODO: Get SSUtils contract object
-      // const routerSPV2Contract = new Contract(
-      //   routerSPV2ContractAddr,
-      //   routerSPV2Abi.abi,
-      //   provider
-      // );
-      // console.log(routerSPV2Contract);
-
-      // TODO: Call SSUTILS.getSwapOutput(address inputToken, address outputToken, uint256 inputAmount)
-      // if (routerSPV2Contract) {
-      //   const _staticCall = await routerSPV2Contract.callStatic.swapTo!(
-      //     weiInput,
-      //     selectedAsset1.address,
-      //     selectedAsset2.address,
-      //     address,
-      //     "0"
-      //   );
-      //   console.log(_staticCall);
-      // }
-
-      // TODO: Format same as the 1inch one
-      // .then((response) => response.json())
-      // .then((data) => {
-      //   if (data.error) {
-      //     changeSourceValue("SPV2", "outputAmount", "0");
-      //     changeSourceValue("SPV2", "error", data.error);
-      //   } else {
-      //     changeSourceValue("SPV2", "outputAmount", data.toTokenAmount);
-      //     changeSourceValue("SPV2", "error", "");
-      //   }
-      // });
+      if (quoteSPV2Contract) {
+        quoteSPV2Contract.callStatic
+          ?.getSwapOutput?.(
+            selectedAsset1.address,
+            selectedAsset2.address,
+            weiInput
+          )
+          .then((result) => {
+            if (result) {
+              changeSourceValue("SPV2", "outputAmount", result.toString());
+              changeSourceValue("SPV2", "error", "");
+            } else {
+              changeSourceValue("SPV2", "outputAmount", "0");
+              changeSourceValue("SPV2", "error", "Error");
+            }
+          });
+      }
     },
-    []
+    [
+      changeSourceValue,
+      provider,
+      selectedAsset1.address,
+      selectedAsset2.address,
+    ]
   );
 
   const get1InchData = useCallback(

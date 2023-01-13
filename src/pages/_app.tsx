@@ -21,6 +21,7 @@ BigNumber.config({ FORMAT: globalFormat });
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const [clientSideRender, setClientSideRender] = useState(false);
+
   useEffect(() => {
     setClientSideRender(true);
   }, []);
