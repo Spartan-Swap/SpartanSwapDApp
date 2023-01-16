@@ -1,5 +1,6 @@
 import { createClient, configureChains } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
+import { jsonRpcProvider } from "wagmi/providers/jsonRpc";
 import { mainnet, bsc, optimism } from "wagmi/chains";
 import { CoinbaseWalletConnector } from "wagmi/connectors/coinbaseWallet";
 import { InjectedConnector } from "wagmi/connectors/injected";
@@ -20,11 +21,119 @@ export type WalletProps = {
   connector: Connector;
 };
 
+export const ethRpcsMN = [
+  // TODO: Order these by whether they are private (priority1) and fast (priority2)
+  // Main RPCs
+  "https://eth.llamarpc.com",
+  "https://rpc.builder0x69.io",
+  "https://eth-rpc.gateway.pokt.network",
+  "https://singapore.rpc.blxrbdn.com",
+  "https://rpc.flashbots.net",
+  "https://1rpc.io/eth",
+  "https://ethereum.publicnode.com",
+  // BACKUPS BELOW
+  // "",
+  // ENV conditionals - Make sure conditional RPCs are not the first index of this array
+  // process.env.NODE_ENV === 'production'
+  //   ? 'https://bsc-mainnet.nodereal.io/v1/cf893e692ffa45098367d6c47fb3ff11' // Permissioned to the SP domain (whitelist)
+  //   : process.env.REACT_APP_NODEREAL_PRIVATE,
+];
+
+export const bscRpcsMN = [
+  // TODO: Order these by whether they are private (priority1) and fast (priority2)
+  // Main RPCs
+  "https://bsc-dataseed.binance.org/",
+  "https://bsc-dataseed1.defibit.io/",
+  "https://bsc-dataseed1.ninicoin.io/",
+  // BACKUPS BELOW
+  "https://bsc-dataseed2.defibit.io/",
+  "https://bsc-dataseed3.defibit.io/",
+  "https://bsc-dataseed4.defibit.io/",
+  "https://bsc-dataseed2.ninicoin.io/",
+  "https://bsc-dataseed3.ninicoin.io/",
+  "https://bsc-dataseed4.ninicoin.io/",
+  "https://bsc-dataseed1.binance.org/",
+  "https://bsc-dataseed2.binance.org/",
+  "https://bsc-dataseed3.binance.org/",
+  "https://bsc-dataseed4.binance.org/",
+  "https://rpc.ankr.com/bsc",
+  "https://bscrpc.com",
+  "https://binance.nodereal.io",
+  // ENV conditionals - Make sure conditional RPCs are not the first index of this array
+  // process.env.NODE_ENV === 'production'
+  //   ? 'https://bsc-mainnet.nodereal.io/v1/cf893e692ffa45098367d6c47fb3ff11' // Permissioned to the SP domain (whitelist)
+  //   : process.env.REACT_APP_NODEREAL_PRIVATE,
+];
+
+export const optimismRpcsMN = [
+  // TODO: Order these by whether they are private (priority1) and fast (priority2)
+  // Main RPCs
+  "https://mainnet.optimism.io",
+  "https://1rpc.io/op",
+  "https://optimism-mainnet.public.blastapi.io",
+  "https://rpc.ankr.com/optimism",
+  "https://endpoints.omniatech.io/v1/op/mainnet/public",
+  // BACKUPS BELOW
+  // "",
+  // ENV conditionals - Make sure conditional RPCs are not the first index of this array
+  // process.env.NODE_ENV === 'production'
+  //   ? 'https://bsc-mainnet.nodereal.io/v1/cf893e692ffa45098367d6c47fb3ff11' // Permissioned to the SP domain (whitelist)
+  //   : process.env.REACT_APP_NODEREAL_PRIVATE,
+];
+
+const getRPCs = (chainId: number) => {
+  if (chainId === mainnet.id) {
+    return ethRpcsMN;
+  }
+  if (chainId === bsc.id) {
+    return bscRpcsMN;
+  }
+  if (chainId === optimism.id) {
+    return optimismRpcsMN;
+  }
+  return [];
+};
+
+const getProviders = () => {
+  const rpcList = [publicProvider({ priority: 11 })];
+  for (let i = 0; i < 10; i++) {
+    rpcList.push(
+      jsonRpcProvider({
+        priority: i,
+        rpc: (chain) => {
+          const _rpcs = getRPCs(chain.id);
+          const _rpc = _rpcs[i];
+          if (_rpc) {
+            return {
+              http: _rpc,
+              // webSocket: `wss://${chain.id}.example.com`,
+            };
+          }
+          i = 10;
+          return null;
+        },
+      })
+    );
+  }
+  return rpcList;
+};
+
 // Configure chains & providers with the Alchemy provider.
 // Two popular providers are Alchemy (alchemy.com) and Infura (infura.io)
 const { chains, provider, webSocketProvider } = configureChains(
   [mainnet, bsc, optimism],
-  [publicProvider()]
+  getProviders(),
+  // [
+  //   jsonRpcProvider({
+  //     priority: 0,
+  //     rpc: (chain) => ({
+  //       http: `https://${chain.id}.example.com`,
+  //       webSocket: `wss://${chain.id}.example.com`,
+  //     }),
+  //   }),
+  //   alchemyProvider({ priority: 1 }),
+  // ],
+  { stallTimeout: 500 }
 );
 
 export const walletList: WalletProps[] = [

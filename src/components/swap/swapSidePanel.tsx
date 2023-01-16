@@ -42,7 +42,15 @@ export function SwapSidePanel({
   }, [selectedSource]);
 
   return (
-    <div id="swapInfoSection" className="p-3">
+    <div
+      id="swapInfoSection"
+      className="h-100 p-3 rounded-md"
+      style={{
+        backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)),url('${sourceInfo.imagesq}')`,
+        backgroundSize: "700px",
+        backgroundPosition: "left",
+      }}
+    >
       <div>
         <div className="sm:hidden">
           <label htmlFor="tabs" className="sr-only">
@@ -51,7 +59,7 @@ export function SwapSidePanel({
           <select
             id="tabs"
             name="tabs"
-            className="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+            className="block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
             defaultValue={selectedTab}
             onChange={(tab) => toggleSelectedTab(tab.target.value)}
           >
@@ -91,14 +99,6 @@ export function SwapSidePanel({
       </div>
       {selectedTab === tabs[0] && (
         <div className="py-2">
-          <div>
-            <img
-              src={sourceInfo.imagelg}
-              alt=""
-              className="inline h-14 flex-none"
-            />
-          </div>
-          <div className="py-2" />
           <div className="">
             The selected swap provider is {sourceInfo.name}
           </div>

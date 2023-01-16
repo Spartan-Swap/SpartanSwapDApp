@@ -45,12 +45,6 @@ export default function SwapRatesTable({
                     >
                       Provider
                     </th>
-                    <th
-                      scope="col"
-                      className="py-2 px-2 text-sm font-semibold text-gray-900 sm:pl-6"
-                    >
-                      Logo
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
@@ -100,7 +94,13 @@ export default function SwapRatesTable({
                           </div>
                         </div>
                       </td>
-                      <td className="whitespace-nowrap py-4 pl-4 pr-2 text-sm sm:pl-6">
+                      <td
+                        className="relative whitespace-nowrap py-4 pl-4 pr-2 text-sm sm:pl-6"
+                        style={{
+                          backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8)),url('${swapSource.imagesq}')`,
+                          backgroundSize: "cover",
+                        }}
+                      >
                         <div className="flex justify-end text-end">
                           <div className="">
                             <div className="font-medium text-gray-900">
@@ -109,17 +109,6 @@ export default function SwapRatesTable({
                             <div className="text-xs text-gray-500">
                               {swapSource.type}
                             </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap py-4 px-2 text-sm sm:pl-6">
-                        <div className="flex justify-end text-end">
-                          <div className="my-auto h-10 flex-shrink-0">
-                            <img
-                              className="h-10 rounded-sm"
-                              src={swapSource.imagesq}
-                              alt=""
-                            />
                           </div>
                         </div>
                       </td>

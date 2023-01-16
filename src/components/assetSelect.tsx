@@ -10,6 +10,7 @@ import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { classNames, shortenString } from "../utils/formatting";
 
 import type { Address } from "wagmi";
+import Image from "next/image";
 
 export type AssetSelectProps = {
   selectedAsset: AssetProps;
@@ -226,11 +227,14 @@ export default function AssetSelect({
                                           )
                                         }
                                       >
-                                        <img
-                                          src={asset?.logo}
-                                          alt=""
-                                          className="mx-auto h-6 w-6 flex-none rounded-full"
-                                        />
+                                        <div className="relative mx-auto h-6 w-6 flex-none rounded-full">
+                                          <Image
+                                            alt=""
+                                            src={asset?.logo}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
                                         {asset?.ticker}
                                       </Combobox.Option>
                                     )
@@ -256,11 +260,14 @@ export default function AssetSelect({
                                   >
                                     {({ selected }) => (
                                       <>
-                                        <img
-                                          src={asset?.logo}
-                                          alt=""
-                                          className="h-6 w-6 flex-none rounded-full"
-                                        />
+                                        <div className="relative h-6 w-6 flex-none rounded-full">
+                                          <Image
+                                            alt=""
+                                            src={asset?.logo}
+                                            fill
+                                            className="object-contain"
+                                          />
+                                        </div>
                                         <span className="ml-3 flex-auto truncate">
                                           <div className="inline">
                                             {asset?.ticker}
@@ -287,11 +294,14 @@ export default function AssetSelect({
                         {selectedAsset && (
                           <div className="hidden h-96 w-1/2 flex-none flex-col divide-y divide-gray-500 divide-opacity-20 overflow-y-auto sm:flex">
                             <div className="flex-none p-6 text-center">
-                              <img
-                                src={selectedAsset.logo}
-                                alt=""
-                                className="mx-auto h-16 w-16 rounded-full"
-                              />
+                              <div className="relative mx-auto h-16 w-16 rounded-full">
+                                <Image
+                                  src={selectedAsset.logo}
+                                  alt=""
+                                  fill
+                                  className="object-contain"
+                                />
+                              </div>
                               <h2 className="mt-3 font-semibold text-gray-300">
                                 {selectedAsset.name}
                               </h2>

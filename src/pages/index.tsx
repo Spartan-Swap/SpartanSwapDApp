@@ -16,17 +16,20 @@ import {
   formatFromWei,
   shortenString,
 } from "../utils/formatting";
-import { useAccount, useBalance } from "wagmi";
+import { useAccount, useBalance, useProvider } from "wagmi";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
-import { gasDefault } from "../utils/const";
+import { gasDefault, ssUtilsAddress } from "../utils/const";
 import WalletModal from "../components/wallet/walletModal";
 import SwapRatesTable from "../components/swap/swapRatesTable";
 import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
+import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
 
 import type { AssetProps } from "../components/assetSelect";
 import type { SwapSourceProps } from "../utils/swapSources";
+import AssetSelectButton from "../components/swap/assetSelectButton";
+import { Contract } from "ethers";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -34,6 +37,7 @@ const button2 = { label: "Docs?", link: "./" };
 
 const Swap: NextPage = () => {
   const { address } = useAccount();
+  const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
   const [walletOpen, setWalletOpen] = useState(false);
   const [assetSelectOpen, setassetSelectOpen] = useState<boolean>(false);
@@ -82,6 +86,40 @@ const Swap: NextPage = () => {
     []
   );
 
+  const getSpartanProtocolData = useCallback(
+    async (weiInput: string) => {
+      const quoteSPV2Contract = new Contract(
+        ssUtilsAddress,
+        ssUtilsAbi.abi,
+        provider
+      );
+
+      if (quoteSPV2Contract) {
+        quoteSPV2Contract.callStatic
+          ?.getSwapOutput?.(
+            selectedAsset1.address,
+            selectedAsset2.address,
+            weiInput
+          )
+          .then((result) => {
+            if (result) {
+              changeSourceValue("SPV2", "outputAmount", result.toString());
+              changeSourceValue("SPV2", "error", "");
+            } else {
+              changeSourceValue("SPV2", "outputAmount", "0");
+              changeSourceValue("SPV2", "error", "Error");
+            }
+          });
+      }
+    },
+    [
+      changeSourceValue,
+      provider,
+      selectedAsset1.address,
+      selectedAsset2.address,
+    ]
+  );
+
   const get1InchData = useCallback(
     (weiInput: string) => {
       const queryUrl =
@@ -113,6 +151,7 @@ const Swap: NextPage = () => {
       const weiInput = convertToWei(inputValue);
       if (BN(weiInput).isGreaterThan(0)) {
         // If chainId === 56 (BSC)
+        getSpartanProtocolData(weiInput);
         get1InchData(weiInput);
         // If chainId === eth
         // If chainId === etc.etc.etc
@@ -122,7 +161,7 @@ const Swap: NextPage = () => {
         setAllSources(swapSources);
       }
     },
-    [get1InchData]
+    [get1InchData, getSpartanProtocolData]
   );
 
   const setInput = useCallback((units: string) => {
@@ -200,20 +239,12 @@ const Swap: NextPage = () => {
                   </span>
                 )}
               </div>
-              <div
-                onClick={() => toggleAssetSelectOpen(1)}
-                role="button"
-                className="w-max py-2"
-              >
-                <span>
-                  <img
-                    src={selectedAsset1.logo}
-                    alt=""
-                    className="inline h-6 w-6 flex-none rounded-full"
-                  />
-                  <div className="ml-2 inline">{selectedAsset1.ticker}</div>
-                </span>
-              </div>
+              <AssetSelectButton
+                handleToggleOpen={toggleAssetSelectOpen}
+                assetNumber={1}
+                assetLogo={selectedAsset1.logo}
+                assetTicker={selectedAsset1.ticker}
+              />
               <div className="w-max justify-self-end py-2">
                 <input
                   placeholder="0"
@@ -272,21 +303,12 @@ const Swap: NextPage = () => {
                   </span>
                 )}
               </div>
-              <div
-                onClick={() => toggleAssetSelectOpen(2)}
-                role="button"
-                className="w-max py-2"
-              >
-                <span>
-                  <img
-                    src={selectedAsset2.logo}
-                    alt=""
-                    className="inline h-6 w-6 flex-none rounded-full"
-                    role="button"
-                  />
-                  <div className="ml-2 inline">{selectedAsset2.ticker}</div>
-                </span>
-              </div>
+              <AssetSelectButton
+                handleToggleOpen={toggleAssetSelectOpen}
+                assetNumber={2}
+                assetLogo={selectedAsset2.logo}
+                assetTicker={selectedAsset2.ticker}
+              />
               <div className="w-max justify-self-end py-2">
                 <input
                   placeholder="Sell Units"
@@ -342,14 +364,12 @@ const Swap: NextPage = () => {
             </div>
           </div>
 
-          <div className="">
-            <SwapSidePanel
-              selectedSource={selectedSource}
-              selectedAsset1={selectedAsset1}
-              selectedAsset2={selectedAsset2}
-              inputAmount={inputAmount}
-            />
-          </div>
+          <SwapSidePanel
+            selectedSource={selectedSource}
+            selectedAsset1={selectedAsset1}
+            selectedAsset2={selectedAsset2}
+            inputAmount={inputAmount}
+          />
         </ul>
       </PageWrap>
     </>
