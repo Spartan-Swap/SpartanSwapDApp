@@ -13,6 +13,7 @@ type SwapSidePanelProps = {
   selectedAsset1: AssetProps;
   selectedAsset2: AssetProps;
   inputAmount: string;
+  setTxnOpen: (value: boolean) => void;
 };
 
 export function SwapSidePanel({
@@ -20,6 +21,7 @@ export function SwapSidePanel({
   selectedAsset1,
   selectedAsset2,
   inputAmount,
+  setTxnOpen,
 }: SwapSidePanelProps) {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [sourceInfo, setSourceInfo] = useState<SwapSourceProps>(
@@ -44,7 +46,7 @@ export function SwapSidePanel({
   return (
     <div
       id="swapInfoSection"
-      className="h-100 p-3 rounded-md"
+      className="h-100 rounded-md p-3"
       style={{
         backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)),url('${sourceInfo.imagesq}')`,
         backgroundSize: "700px",
@@ -113,6 +115,16 @@ export function SwapSidePanel({
             Estimated receiving: 00,000.00 {selectedAsset2.ticker}
           </div>
           <div className="">Estimated gas cost: ~0.00000 BNB</div>
+          <div className="py-2" />
+          <div>
+            <button
+              type="button"
+              className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              onClick={() => setTxnOpen(true)}
+            >
+              Swap
+            </button>
+          </div>
         </div>
       )}
       {selectedTab === tabs[1] && <div>Price Chart Component</div>}

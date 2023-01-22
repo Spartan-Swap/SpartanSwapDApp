@@ -30,6 +30,7 @@ import type { AssetProps } from "../components/assetSelect";
 import type { SwapSourceProps } from "../utils/swapSources";
 import AssetSelectButton from "../components/swap/assetSelectButton";
 import { Contract } from "ethers";
+import TxnModal from "../components/transaction/txnModal";
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -40,6 +41,7 @@ const Swap: NextPage = () => {
   const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
   const [walletOpen, setWalletOpen] = useState(false);
+  const [txnOpen, setTxnOpen] = useState(false);
   const [assetSelectOpen, setassetSelectOpen] = useState<boolean>(false);
   const [assetId, setassetId] = useState<AssetIdProps>(1);
   const [selectedAsset1, setSelectedAsset1] = useState<AssetProps>(bnbAsset);
@@ -196,6 +198,7 @@ const Swap: NextPage = () => {
 
   return (
     <>
+      <TxnModal isOpen={txnOpen} setOpen={setTxnOpen} />
       <WalletModal isOpen={walletOpen} setOpen={setWalletOpen} />
       <AssetSelect
         selectedAsset={assetId === 1 ? selectedAsset1 : selectedAsset2}
@@ -369,6 +372,7 @@ const Swap: NextPage = () => {
             selectedAsset1={selectedAsset1}
             selectedAsset2={selectedAsset2}
             inputAmount={inputAmount}
+            setTxnOpen={setTxnOpen}
           />
         </ul>
       </PageWrap>
