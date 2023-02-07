@@ -18,7 +18,6 @@ import { useAtom } from "jotai";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
-import WalletModal from "../components/wallet/walletModal";
 import SwapRatesTable from "../components/swap/swapRatesTable";
 import { CoinGeckoLogoTemp } from "../utils/swapSources";
 import AssetSelectButton from "../components/swap/assetSelectButton";
@@ -34,23 +33,22 @@ const Swap: NextPage = () => {
   const { address } = useAccount();
   // const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
-  // --- INTERFACED STATE ---
+  // --- GLOBAL STATE ---
   // Simple types
-  const [walletOpen, setWalletOpen] = useAtom(atoms.walletOpenAtom);
-  const [txnOpen, setTxnOpen] = useAtom(atoms.txnOpenAtom);
+  const [, setWalletOpen] = useAtom(atoms.walletOpenAtom);
+  const [swapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
   const [assetSelectOpen, setassetSelectOpen] = useAtom(
     atoms.assetSelectOpenAtom
   );
-  const [assetId, setassetId] = useAtom(atoms.assetIdAtom);
+  const [, setAssetId] = useAtom(atoms.assetIdAtom);
   const [selectedSource] = useAtom(atoms.selectedSourceAtom);
-  // const [isLoading] = useAtom(atoms.isLoadingAtom); // TODO: SHIFT LOADING STATE TO EACH SWAP PROVIDER ITEM
-  const [inputAmount, setInputAmount] = useAtom(atoms.inputAmountAtom);
+  const [, setInputAmount] = useAtom(atoms.inputAmountAtom);
   const [outputAmount, setOutputAmount] = useAtom(atoms.outputAmountAtom);
   // Arrays - candidates for splitAtom(peopleAtom)
   const [allSources] = useAtom(atoms.allSourcesAtom);
   // Objects - candidates for focusAtom(dataAtom, (optic) => optic.prop('people'))
-  const [selectedAsset1, setSelectedAsset1] = useAtom(atoms.selectedAsset1Atom);
-  const [selectedAsset2, setSelectedAsset2] = useAtom(atoms.selectedAsset2Atom);
+  const [selectedAsset1] = useAtom(atoms.selectedAsset1Atom);
+  const [selectedAsset2] = useAtom(atoms.selectedAsset2Atom);
 
   const assetBalance1 = useBalance({
     address: address,
@@ -61,12 +59,8 @@ const Swap: NextPage = () => {
     token: selectedAsset2.address,
   });
 
-  const toggleWallet = () => {
-    setWalletOpen(!walletOpen);
-  };
-
   const toggleAssetSelectOpen = (assetId: AssetIdProps) => {
-    setassetId(assetId);
+    setAssetId(assetId);
     setassetSelectOpen(true);
   };
 
@@ -88,14 +82,8 @@ const Swap: NextPage = () => {
 
   return (
     <>
-      <TxnModal isOpen={txnOpen} setOpen={setTxnOpen} />
-      <WalletModal isOpen={walletOpen} setOpen={setWalletOpen} />
-      <AssetSelect
-        selectedAsset={assetId === 1 ? selectedAsset1 : selectedAsset2}
-        setSelectedAsset={assetId === 1 ? setSelectedAsset1 : setSelectedAsset2}
-        isOpen={assetSelectOpen}
-        setOpen={setassetSelectOpen}
-      />
+      {swapTxnOpen && <TxnModal />}
+      {assetSelectOpen && <AssetSelect />}
       <PageHeading title="Swap" button1={button1} button2={button2} />
       <PageWrap>
         <ul className="grid grid-cols-1 divide-y divide-gray-200 rounded-lg bg-white shadow md:grid-cols-2 md:divide-y-0 md:divide-x">
@@ -126,7 +114,7 @@ const Swap: NextPage = () => {
                   <span
                     className="ml-1 inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
                     role="button"
-                    onClick={() => toggleWallet()}
+                    onClick={() => setWalletOpen((prev) => !prev)}
                   >
                     Connect Wallet
                   </span>
@@ -190,7 +178,7 @@ const Swap: NextPage = () => {
                   <span
                     className="ml-1 inline-flex items-center rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800"
                     role="button"
-                    onClick={() => toggleWallet()}
+                    onClick={() => setWalletOpen((prev) => !prev)}
                   >
                     Connect Wallet
                   </span>
@@ -211,10 +199,6 @@ const Swap: NextPage = () => {
                   disabled
                 />
                 <ArrowPathIcon
-                  // className={classNames(
-                  //   "ml-1 mb-1 inline h-5 w-5 text-gray-700",
-                  //   isLoading ? "animate-spin" : ""
-                  // )} // TODO: Use the loading state class logic from here inside each swap provider item
                   className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
                   aria-hidden="true"
                   role="button"
@@ -253,13 +237,7 @@ const Swap: NextPage = () => {
             </div>
           </div>
 
-          <SwapSidePanel
-            selectedSource={selectedSource}
-            selectedAsset1={selectedAsset1}
-            selectedAsset2={selectedAsset2}
-            inputAmount={inputAmount}
-            setTxnOpen={setTxnOpen}
-          />
+          <SwapSidePanel />
         </ul>
       </PageWrap>
     </>

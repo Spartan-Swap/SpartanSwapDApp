@@ -33,9 +33,9 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     return (
       <Provider>
         <WagmiConfig client={wagmiClient}>
-            <Layout>
-              <Component {...pageProps} />
-            </Layout>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
         </WagmiConfig>
       </Provider>
     );

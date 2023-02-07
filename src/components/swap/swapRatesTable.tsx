@@ -1,6 +1,7 @@
-import SwapRatesTableItem from "./swapRatesTableItem";
-import { allSwapAtoms as atoms } from "../../state/globalStore";
 import { useAtom } from "jotai";
+
+import SwapRatesTableItem from "./swapRatesTableItem";
+import { allSwapRatesTableAtoms as atoms } from "../../state/globalStore";
 
 export default function SwapRatesTable() {
   const [allSourcesSplit] = useAtom(atoms.allSourcesAtomSplit);

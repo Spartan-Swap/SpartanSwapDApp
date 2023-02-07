@@ -11,12 +11,12 @@ import { swapSources } from "../utils/swapSources";
 
 // ---- SWAP PAGE STATES ----
 // Simple types
-const walletOpenAtom = atom(false);
-const txnOpenAtom = atom(false);
+const walletOpenAtom = atom(false); // Wallet Modal isOpen
+const sidebarOpenAtom = atom(true); // Sidebar isExpanded
+const swapTxnOpenAtom = atom(false); // Swap txn modal isOpen
 const assetSelectOpenAtom = atom(false);
 const assetIdAtom = atom(1);
 const selectedSourceAtom = atom("");
-const isLoadingAtom = atom(false);
 const inputAmountAtom = atom("0");
 const outputAmountAtom = atom("0.00");
 // Arrays - candidates for splitAtom(peopleAtom)
@@ -26,29 +26,58 @@ const allSourcesAtomSplit = splitAtom(allSourcesAtom);
 const selectedAsset1Atom = atomWithStorage("sswap-selectedAsset1", bnbAsset); // Persistent
 const selectedAsset2Atom = atomWithStorage("sswap-selectedAsset2", spartaAsset); // Persistent
 
-// ---- BUNDLE ATOMS PER VIEW / COMPONENT ----
+// ---- BUNDLED ATOM EXPORTS LAYOUT ----
 export const allGlobalAtoms = {};
-export const allTopbarAtoms = {};
+export const allLayoutAtoms = { walletOpenAtom };
+export const allTopbarAtoms = { walletOpenAtom, sidebarOpenAtom };
 export const allSidebarAtoms = {};
+
+// ---- BUNDLED ATOM EXPORTS VIEWS ----
 export const allSwapAtoms = {
   allSourcesAtom,
-  allSourcesAtomSplit,
   walletOpenAtom,
-  txnOpenAtom,
+  swapTxnOpenAtom,
   assetSelectOpenAtom,
   assetIdAtom,
   selectedSourceAtom,
-  isLoadingAtom,
   inputAmountAtom,
   outputAmountAtom,
   selectedAsset1Atom,
   selectedAsset2Atom,
 };
+
+// ---- BUNDLED ATOM EXPORTS COMPONENTS ----
+// walletModal.tsx
+export const allWalletModalAtoms = {
+  walletOpenAtom,
+};
+// swapRatesTable.tsx
+export const allSwapRatesTableAtoms = {
+  allSourcesAtomSplit,
+};
 // swapRatesTableItem.tsx
 export const allSwapRatesTableItemAtoms = {
-  allSourcesAtom,
   selectedSourceAtom,
   inputAmountAtom,
+  selectedAsset1Atom,
+  selectedAsset2Atom,
+};
+// txnModal.tsx
+export const allSwapTxnModalAtoms = {
+  swapTxnOpenAtom,
+};
+// swapSidePanel.tsx
+export const allSwapSidePanelAtoms = {
+  selectedSourceAtom,
+  inputAmountAtom,
+  selectedAsset1Atom,
+  selectedAsset2Atom,
+  swapTxnOpenAtom,
+};
+// assetSelect.tsx
+export const allAssetSelectAtoms = {
+  assetSelectOpenAtom,
+  assetIdAtom,
   selectedAsset1Atom,
   selectedAsset2Atom,
 };

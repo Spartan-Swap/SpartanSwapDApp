@@ -1,5 +1,10 @@
 import { CoinGeckoLogoTemp } from "../../utils/swapSources";
-import { BN, convertToWei, formatFromWei } from "../../utils/formatting";
+import {
+  BN,
+  classNames,
+  convertToWei,
+  formatFromWei,
+} from "../../utils/formatting";
 
 import { allSwapRatesTableItemAtoms as atoms } from "../../state/globalStore";
 import { useAtom } from "jotai";
@@ -8,6 +13,7 @@ import { useProvider } from "wagmi";
 
 import type { SwapSourceProps } from "../../utils/swapSources";
 import type { PrimitiveAtom } from "jotai";
+import { ArrowPathIcon } from "@heroicons/react/20/solid";
 
 type SwapRatesTableItemProps = {
   swapSourceItem: PrimitiveAtom<SwapSourceProps>;
@@ -32,6 +38,10 @@ export default function SwapRatesTableItem({
     const intervalDelay = 10000;
 
     const extCallFn = async () => {
+      setSwapSource((prevItem) => ({
+        ...prevItem,
+        loading: true,
+      }));
       const weiInput = convertToWei(inputAmount);
       if (BN(weiInput).isGreaterThan(0)) {
         // If chainId === 56 (BSC)
@@ -43,26 +53,35 @@ export default function SwapRatesTableItem({
         );
         const [outputAmount, errorMsg] = await theCall;
         if (outputAmount !== "") {
-          const prevItem = swapSource;
-          prevItem.outputAmount = outputAmount;
-          prevItem.error = errorMsg;
-          setSwapSource(prevItem);
+          setSwapSource((prevItem) => ({
+            ...prevItem,
+            outputAmount: outputAmount,
+            error: errorMsg,
+          }));
         }
         // If chainId === eth
         // If chainId === etc.etc.etc
-        // setLoading(false); // TODO: CHANGE TO A LOCAL ISLOADING STATE INSIDE THE CURRECT SWAP SOURCE ITEM
       } else {
-        const prevItem = swapSource;
-        prevItem.outputAmount = "0";
-        prevItem.error = "";
-        setSwapSource(prevItem);
+        setSwapSource((prevItem) => ({
+          ...prevItem,
+          outputAmount: "0",
+          error: "",
+        }));
       }
+      setSwapSource((prevItem) => ({
+        ...prevItem,
+        loading: false,
+      }));
     };
     const timeOutId = setTimeout(() => extCallFn(), debounceDelay);
     const interval = setInterval(() => extCallFn(), intervalDelay);
     return () => {
       clearTimeout(timeOutId);
       clearInterval(interval);
+      setSwapSource((prevItem) => ({
+        ...prevItem,
+        loading: false,
+      }));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [inputAmount, selectedAsset1, selectedAsset2]);
@@ -120,7 +139,18 @@ export default function SwapRatesTableItem({
         >
           <div className="flex justify-end text-end">
             <div className="">
-              <div className="font-medium text-gray-900">{swapSource.name}</div>
+              <div className="font-medium text-gray-900">
+                <ArrowPathIcon
+                  className={classNames(
+                    "ml-1 mb-1 inline h-4 w-4 text-gray-700",
+                    swapSource.loading ? "animate-spin" : ""
+                  )}
+                  aria-hidden="true"
+                  role="button"
+                  // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
+                />
+                {swapSource.name}
+              </div>
               <div className="text-xs text-gray-500">{swapSource.type}</div>
             </div>
           </div>

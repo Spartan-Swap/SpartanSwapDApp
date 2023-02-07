@@ -74,6 +74,7 @@ export type SwapSourceProps = {
   imagesq: string;
   imagelg: string;
   outputAmount: string;
+  loading: boolean;
   error: string;
   extCall: (
     asset1Addr: string,
@@ -120,6 +121,7 @@ export const spartanProtocolSource: SwapSourceProps = {
   imagelg:
     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/sparta-text-short.svg",
   outputAmount: "0",
+  loading: false,
   error: "",
   extCall: (asset1Addr, asset2Addr, weiInput, providerObj) =>
     spartanProtocolSourceExtCall(asset1Addr, asset2Addr, weiInput, providerObj),
@@ -132,23 +134,23 @@ const oneInchSourceExtCall = async (
 ) => {
   let returnVal: [string, string] = ["", ""];
   const queryUrl =
-  "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
-  selectedAsset1Addr +
-  "&toTokenAddress=" +
-  selectedAsset2Addr +
-  "&amount=" +
-  weiInput +
-  "&gasPrice=" +
-  gasDefault;
+    "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+    selectedAsset1Addr +
+    "&toTokenAddress=" +
+    selectedAsset2Addr +
+    "&amount=" +
+    weiInput +
+    "&gasPrice=" +
+    gasDefault;
   await fetch(queryUrl)
-  .then((response) => response.json())
-  .then((data) => {
-    if (data.error) {
-      returnVal = ["0", data.error];
-    } else {
-      returnVal = [data.toTokenAmount, ""];
-    }
-  });
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        returnVal = ["0", data.error];
+      } else {
+        returnVal = [data.toTokenAmount, ""];
+      }
+    });
   return returnVal;
 };
 
@@ -159,6 +161,7 @@ export const oneInchSource: SwapSourceProps = {
   imagesq: "https://cryptologos.cc/logos/1inch-1inch-logo.svg",
   imagelg: "https://1inch.io/img/pressRoom/logo.svg",
   outputAmount: "0",
+  loading: false,
   error: "",
   extCall: (asset1Addr, asset2Addr, weiInput) =>
     oneInchSourceExtCall(asset1Addr, asset2Addr, weiInput),
@@ -201,6 +204,7 @@ export const swapSources: SwapSourceProps[] = [
     imagesq: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
     imagelg: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
     outputAmount: "0",
+    loading: false,
     error: "",
     extCall: (asset1Addr, asset2Addr, weiInput) =>
       pancakeswapExtCall(asset1Addr, asset2Addr, weiInput),

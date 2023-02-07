@@ -1,32 +1,26 @@
-import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
 import { useEffect, useState } from "react";
+import { useAtom } from "jotai";
+import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
+
 import { classNames } from "../../utils/formatting";
 import { swapSources, spartanProtocolSource } from "../../utils/swapSources";
+import { allSwapSidePanelAtoms as atoms } from "../../state/globalStore";
 
 import type { SwapSourceProps } from "../../utils/swapSources";
-import type { AssetProps } from "../assetSelect";
 
 const tabs: string[] = ["Swap Details", "Price Chart"];
 
-type SwapSidePanelProps = {
-  selectedSource: string;
-  selectedAsset1: AssetProps;
-  selectedAsset2: AssetProps;
-  inputAmount: string;
-  setTxnOpen: (value: boolean) => void;
-};
-
-export function SwapSidePanel({
-  selectedSource,
-  selectedAsset1,
-  selectedAsset2,
-  inputAmount,
-  setTxnOpen,
-}: SwapSidePanelProps) {
+export function SwapSidePanel() {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [sourceInfo, setSourceInfo] = useState<SwapSourceProps>(
     spartanProtocolSource
   );
+
+  const [selectedSource] = useAtom(atoms.selectedSourceAtom);
+  const [inputAmount] = useAtom(atoms.inputAmountAtom);
+  const [selectedAsset1] = useAtom(atoms.selectedAsset1Atom);
+  const [selectedAsset2] = useAtom(atoms.selectedAsset2Atom);
+  const [, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
 
   const toggleSelectedTab = (newTab: string) => {
     setSelectedTab(tabs.find((tab) => tab === newTab));
@@ -120,7 +114,7 @@ export function SwapSidePanel({
             <button
               type="button"
               className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              onClick={() => setTxnOpen(true)}
+              onClick={() => setSwapTxnOpen(true)}
             >
               Swap
             </button>

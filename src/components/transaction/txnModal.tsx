@@ -1,16 +1,17 @@
 import { Fragment } from "react";
+import { useAtom } from "jotai";
 import { Dialog, Transition } from "@headlessui/react";
+
 import TxnProgress from "./txnProgress";
 
-export type TxnModalProps = {
-  isOpen: boolean;
-  setOpen: (value: boolean) => void;
-};
+import { allSwapTxnModalAtoms as atoms } from "../../state/globalStore";
 
-export default function TxnModal({ isOpen, setOpen }: TxnModalProps) {
+export default function TxnModal() {
+  const [swapTxnOpen, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
+
   return (
-    <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={setOpen}>
+    <Transition.Root show={swapTxnOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-10" onClose={setSwapTxnOpen}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -53,14 +54,14 @@ export default function TxnModal({ isOpen, setOpen }: TxnModalProps) {
                     type="button"
                     className="inline-flex w-full justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-2 sm:text-sm"
                     // disabled={}
-                    onClick={() => setOpen(false)}
+                    onClick={() => setSwapTxnOpen(false)}
                   >
                     Sign Txn
                   </button>
                   <button
                     type="button"
                     className="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:col-start-1 sm:mt-0 sm:text-sm"
-                    onClick={() => setOpen(false)}
+                    onClick={() => setSwapTxnOpen(false)}
                   >
                     Cancel
                   </button>
