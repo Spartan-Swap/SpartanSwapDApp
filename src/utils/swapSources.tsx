@@ -245,7 +245,6 @@ const zeroXExtCall = async (
       if (data.reason) {
         returnVal = ["0", data.reason];
       } else {
-        console.log("success tester", data);
         returnVal = [data.buyAmount, ""];
       }
     });
