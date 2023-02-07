@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
-import { useCallback, useEffect, useState } from "react";
-import AssetSelect, { bnbAsset, spartaAsset } from "../components/assetSelect";
+import { useEffect } from "react";
+import AssetSelect from "../components/assetSelect";
 import PageHeading from "../components/pageHeading";
 import {
   ArrowPathIcon,
@@ -9,28 +9,22 @@ import {
   XCircleIcon,
 } from "@heroicons/react/20/solid";
 import {
-  BN,
-  classNames,
   convertFromWei,
-  convertToWei,
   formatFromWei,
   shortenString,
 } from "../utils/formatting";
-import { useAccount, useBalance, useProvider } from "wagmi";
+import { useAccount, useBalance } from "wagmi";
+import { useAtom } from "jotai";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
-import { gasDefault, ssUtilsAddress } from "../utils/const";
 import WalletModal from "../components/wallet/walletModal";
 import SwapRatesTable from "../components/swap/swapRatesTable";
-import { CoinGeckoLogoTemp, swapSources } from "../utils/swapSources";
-import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
-
-import type { AssetProps } from "../components/assetSelect";
-import type { SwapSourceProps } from "../utils/swapSources";
+import { CoinGeckoLogoTemp } from "../utils/swapSources";
 import AssetSelectButton from "../components/swap/assetSelectButton";
-import { Contract } from "ethers";
 import TxnModal from "../components/transaction/txnModal";
+import { allSwapAtoms as atoms } from "../state/globalStore";
+
 export type AssetIdProps = 1 | 2;
 
 const button1 = { label: "GitHub?", link: "./" };
@@ -38,19 +32,25 @@ const button2 = { label: "Docs?", link: "./" };
 
 const Swap: NextPage = () => {
   const { address } = useAccount();
-  const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
+  // const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
-  const [walletOpen, setWalletOpen] = useState(false);
-  const [txnOpen, setTxnOpen] = useState(false);
-  const [assetSelectOpen, setassetSelectOpen] = useState<boolean>(false);
-  const [assetId, setassetId] = useState<AssetIdProps>(1);
-  const [selectedAsset1, setSelectedAsset1] = useState<AssetProps>(bnbAsset);
-  const [selectedAsset2, setSelectedAsset2] = useState<AssetProps>(spartaAsset);
-  const [allSources, setAllSources] = useState<SwapSourceProps[]>(swapSources);
-  const [selectedSource, setSelectedSource] = useState<string>("");
-  const [isLoading, setLoading] = useState(false);
-  const [inputAmount, setInputAmount] = useState("0");
-  const [outputAmount, setOutputAmount] = useState("0.00");
+  // --- INTERFACED STATE ---
+  // Simple types
+  const [walletOpen, setWalletOpen] = useAtom(atoms.walletOpenAtom);
+  const [txnOpen, setTxnOpen] = useAtom(atoms.txnOpenAtom);
+  const [assetSelectOpen, setassetSelectOpen] = useAtom(
+    atoms.assetSelectOpenAtom
+  );
+  const [assetId, setassetId] = useAtom(atoms.assetIdAtom);
+  const [selectedSource] = useAtom(atoms.selectedSourceAtom);
+  // const [isLoading] = useAtom(atoms.isLoadingAtom); // TODO: SHIFT LOADING STATE TO EACH SWAP PROVIDER ITEM
+  const [inputAmount, setInputAmount] = useAtom(atoms.inputAmountAtom);
+  const [outputAmount, setOutputAmount] = useAtom(atoms.outputAmountAtom);
+  // Arrays - candidates for splitAtom(peopleAtom)
+  const [allSources] = useAtom(atoms.allSourcesAtom);
+  // Objects - candidates for focusAtom(dataAtom, (optic) => optic.prop('people'))
+  const [selectedAsset1, setSelectedAsset1] = useAtom(atoms.selectedAsset1Atom);
+  const [selectedAsset2, setSelectedAsset2] = useAtom(atoms.selectedAsset2Atom);
 
   const assetBalance1 = useBalance({
     address: address,
@@ -77,124 +77,14 @@ const Swap: NextPage = () => {
     }
   }, [selectedSource, allSources]);
 
-  const changeSourceValue = useCallback(
-    (id: string, propName: string, newValue: string) => {
-      setAllSources((prev) =>
-        prev.map((item) =>
-          item.id === id ? { ...item, [propName]: newValue } : item
-        )
-      );
-    },
-    []
-  );
-
-  const getSpartanProtocolData = useCallback(
-    async (weiInput: string) => {
-      const quoteSPV2Contract = new Contract(
-        ssUtilsAddress,
-        ssUtilsAbi.abi,
-        provider
-      );
-
-      if (quoteSPV2Contract) {
-        quoteSPV2Contract.callStatic
-          ?.getSwapOutput?.(
-            selectedAsset1.address,
-            selectedAsset2.address,
-            weiInput
-          )
-          .then((result) => {
-            if (result) {
-              changeSourceValue("SPV2", "outputAmount", result.toString());
-              changeSourceValue("SPV2", "error", "");
-            } else {
-              changeSourceValue("SPV2", "outputAmount", "0");
-              changeSourceValue("SPV2", "error", "Error");
-            }
-          });
-      }
-    },
-    [
-      changeSourceValue,
-      provider,
-      selectedAsset1.address,
-      selectedAsset2.address,
-    ]
-  );
-
-  const get1InchData = useCallback(
-    (weiInput: string) => {
-      const queryUrl =
-        "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
-        selectedAsset1.address +
-        "&toTokenAddress=" +
-        selectedAsset2.address +
-        "&amount=" +
-        weiInput +
-        "&gasPrice=" +
-        gasDefault;
-      fetch(queryUrl)
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.error) {
-            changeSourceValue("1INCH", "outputAmount", "0");
-            changeSourceValue("1INCH", "error", data.error);
-          } else {
-            changeSourceValue("1INCH", "outputAmount", data.toTokenAmount);
-            changeSourceValue("1INCH", "error", "");
-          }
-        });
-    },
-    [changeSourceValue, selectedAsset1.address, selectedAsset2.address]
-  );
-
-  const onInputChange = useCallback(
-    async (inputValue: string) => {
-      const weiInput = convertToWei(inputValue);
-      if (BN(weiInput).isGreaterThan(0)) {
-        // If chainId === 56 (BSC)
-        getSpartanProtocolData(weiInput);
-        get1InchData(weiInput);
-        // If chainId === eth
-        // If chainId === etc.etc.etc
-        setLoading(false);
-      } else {
-        setInputAmount("");
-        setAllSources(swapSources);
-      }
-    },
-    [get1InchData, getSpartanProtocolData]
-  );
-
-  const setInput = useCallback((units: string) => {
+  const setInput = (units: string) => {
     const el = document.getElementById("inputUnits1") as HTMLInputElement;
     if (el) {
       setInputAmount(units);
       el.value = units;
       el.focus();
     }
-  }, []);
-
-  /** Get new rate/quote every x seconds with a debounce delay to reduce API calls
-   * Clear & re-calc whenever the inputAmount or selectedAssets change
-   */
-  useEffect(() => {
-    const debounceDelay = 500;
-    const intervalDelay = 10000;
-    const timeOutId = setTimeout(
-      () => onInputChange(inputAmount),
-      debounceDelay
-    );
-    const interval = setInterval(
-      () => onInputChange(inputAmount),
-      intervalDelay
-    );
-    return () => {
-      clearTimeout(timeOutId);
-      clearInterval(interval);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [inputAmount, selectedAsset1, selectedAsset2]);
+  };
 
   return (
     <>
@@ -321,13 +211,14 @@ const Swap: NextPage = () => {
                   disabled
                 />
                 <ArrowPathIcon
-                  className={classNames(
-                    "ml-1 mb-1 inline h-5 w-5 text-gray-700",
-                    isLoading ? "animate-spin" : ""
-                  )}
+                  // className={classNames(
+                  //   "ml-1 mb-1 inline h-5 w-5 text-gray-700",
+                  //   isLoading ? "animate-spin" : ""
+                  // )} // TODO: Use the loading state class logic from here inside each swap provider item
+                  className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
                   aria-hidden="true"
                   role="button"
-                  onClick={() => onInputChange(inputAmount)}
+                  // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
                 />
               </div>
               <div className="w-max">
@@ -357,12 +248,7 @@ const Swap: NextPage = () => {
             <div className="w-full border-t border-gray-300" />
             <div id="swapInfoSection" className="p-3">
               <div className="text-md font-medium">
-                <SwapRatesTable
-                  sources={allSources}
-                  setSelectedSource={setSelectedSource}
-                  selectedSource={selectedSource}
-                  selectedAsset2={selectedAsset2}
-                />
+                <SwapRatesTable />
               </div>
             </div>
           </div>

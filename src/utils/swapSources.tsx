@@ -1,3 +1,9 @@
+import { gasDefault, ssUtilsAddress } from "./const";
+import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
+
+import type { Provider } from "@wagmi/core";
+import { Contract } from "ethers";
+
 export const CoinGeckoLogoTemp = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -69,6 +75,40 @@ export type SwapSourceProps = {
   imagelg: string;
   outputAmount: string;
   error: string;
+  extCall: (
+    asset1Addr: string,
+    asset2Addr: string,
+    weiInput: string,
+    provider?: Provider
+  ) => Promise<[string, string]>;
+};
+
+const spartanProtocolSourceExtCall = async (
+  selectedAsset1Addr: string,
+  selectedAsset2Addr: string,
+  weiInput: string,
+  provider: Provider | undefined
+) => {
+  let returnVal: [string, string] = ["", ""];
+  if (provider) {
+    const quoteSPV2Contract = new Contract(
+      ssUtilsAddress,
+      ssUtilsAbi.abi,
+      provider
+    );
+    if (quoteSPV2Contract) {
+      await quoteSPV2Contract.callStatic
+        ?.getSwapOutput?.(selectedAsset1Addr, selectedAsset2Addr, weiInput)
+        .then((result) => {
+          if (result) {
+            returnVal = [result.toString(), ""];
+          } else {
+            returnVal = ["0", "Error"];
+          }
+        });
+    }
+  }
+  return returnVal;
 };
 
 export const spartanProtocolSource: SwapSourceProps = {
@@ -81,6 +121,35 @@ export const spartanProtocolSource: SwapSourceProps = {
     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/sparta-text-short.svg",
   outputAmount: "0",
   error: "",
+  extCall: (asset1Addr, asset2Addr, weiInput, providerObj) =>
+    spartanProtocolSourceExtCall(asset1Addr, asset2Addr, weiInput, providerObj),
+};
+
+const oneInchSourceExtCall = async (
+  selectedAsset1Addr: string,
+  selectedAsset2Addr: string,
+  weiInput: string
+) => {
+  let returnVal: [string, string] = ["", ""];
+  const queryUrl =
+  "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+  selectedAsset1Addr +
+  "&toTokenAddress=" +
+  selectedAsset2Addr +
+  "&amount=" +
+  weiInput +
+  "&gasPrice=" +
+  gasDefault;
+  await fetch(queryUrl)
+  .then((response) => response.json())
+  .then((data) => {
+    if (data.error) {
+      returnVal = ["0", data.error];
+    } else {
+      returnVal = [data.toTokenAmount, ""];
+    }
+  });
+  return returnVal;
 };
 
 export const oneInchSource: SwapSourceProps = {
@@ -91,6 +160,35 @@ export const oneInchSource: SwapSourceProps = {
   imagelg: "https://1inch.io/img/pressRoom/logo.svg",
   outputAmount: "0",
   error: "",
+  extCall: (asset1Addr, asset2Addr, weiInput) =>
+    oneInchSourceExtCall(asset1Addr, asset2Addr, weiInput),
+};
+
+const pancakeswapExtCall = async (
+  selectedAsset1Addr: string,
+  selectedAsset2Addr: string,
+  weiInput: string
+) => {
+  const result: [string, string] = ["", ""];
+  // const queryUrl =
+  //   "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+  //   selectedAsset1Addr +
+  //   "&toTokenAddress=" +
+  //   selectedAsset2Addr +
+  //   "&amount=" +
+  //   weiInput +
+  //   "&gasPrice=" +
+  //   gasDefault;
+  // fetch(queryUrl)
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     if (data.error) {
+  //       result = ["0", data.error];
+  //     } else {
+  //       result = [data.toTokenAmount, ""];
+  //     }
+  //   });
+  return result;
 };
 
 export const swapSources: SwapSourceProps[] = [
@@ -104,6 +202,8 @@ export const swapSources: SwapSourceProps[] = [
     imagelg: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
     outputAmount: "0",
     error: "",
+    extCall: (asset1Addr, asset2Addr, weiInput) =>
+      pancakeswapExtCall(asset1Addr, asset2Addr, weiInput),
   },
 ];
 

@@ -2959,6 +2959,16 @@ jayson@^3.4.4:
     uuid "^8.3.2"
     ws "^7.4.5"
 
+jotai-optics@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/jotai-optics/-/jotai-optics-0.3.0.tgz#ae5ced595cc9f74a76b03f678d507d03a520e073"
+  integrity sha512-5ttpCRREIBu6DJix0wlyBP6y1QDPlePnoMZSXNDi/FOkXZrhk9uIXKjwvw34/yBCHT5mYpFUD4sFDvRUU2vkvQ==
+
+jotai@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/jotai/-/jotai-2.0.0.tgz#3938ad0166130417811bb57ec2de8abeb24bd948"
+  integrity sha512-04G0CRZQgp3xrFAezd6X14psZ2TRGekHeYMBcbDJ/BR8ZJQPS+j0YkMTxUxyG58HJnN2+adfj5sWQWoqgtp1XQ==
+
 js-sdsl@^4.1.4:
   version "4.2.0"
   resolved "https://registry.yarnpkg.com/js-sdsl/-/js-sdsl-4.2.0.tgz#278e98b7bea589b8baaf048c20aeb19eb7ad09d0"

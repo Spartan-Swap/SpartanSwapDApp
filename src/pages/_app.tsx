@@ -5,6 +5,7 @@ import { WagmiConfig } from "wagmi";
 import { wagmiClient } from "../components/wallet/client";
 import { useEffect, useState } from "react";
 import BigNumber from "bignumber.js";
+import { Provider } from "jotai";
 
 const globalFormat = {
   prefix: "",
@@ -30,11 +31,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     return <div>Loading...</div>;
   } else {
     return (
-      <WagmiConfig client={wagmiClient}>
-        <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </WagmiConfig>
+      <Provider>
+        <WagmiConfig client={wagmiClient}>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+        </WagmiConfig>
+      </Provider>
     );
   }
 }
