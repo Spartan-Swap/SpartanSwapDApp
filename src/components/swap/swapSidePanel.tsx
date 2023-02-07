@@ -3,7 +3,7 @@ import { useAtom } from "jotai";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
 
 import { classNames } from "../../utils/formatting";
-import { swapSources, spartanProtocolSource } from "../../utils/swapSources";
+import { swapSources, spartanProtocolV2Source } from "../../utils/swapSources";
 import { allSwapSidePanelAtoms as atoms } from "../../state/globalStore";
 
 import type { SwapSourceProps } from "../../utils/swapSources";
@@ -13,7 +13,7 @@ const tabs: string[] = ["Swap Details", "Price Chart"];
 export function SwapSidePanel() {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
   const [sourceInfo, setSourceInfo] = useState<SwapSourceProps>(
-    spartanProtocolSource
+    spartanProtocolV2Source
   );
 
   const [selectedSource] = useAtom(atoms.selectedSourceAtom);
@@ -33,7 +33,7 @@ export function SwapSidePanel() {
     if (_source) {
       setSourceInfo(_source);
     } else {
-      setSourceInfo(spartanProtocolSource);
+      setSourceInfo(spartanProtocolV2Source);
     }
   }, [selectedSource]);
 

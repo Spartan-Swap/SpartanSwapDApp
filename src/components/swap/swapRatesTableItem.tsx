@@ -46,8 +46,8 @@ export default function SwapRatesTableItem({
       if (BN(weiInput).isGreaterThan(0)) {
         // If chainId === 56 (BSC)
         const theCall = swapSource.extCall(
-          selectedAsset1.address,
-          selectedAsset2.address,
+          selectedAsset1,
+          selectedAsset2,
           weiInput,
           provider
         );
@@ -156,6 +156,11 @@ export default function SwapRatesTableItem({
           </div>
         </td>
       </tr>
+      {!swapSource.integrated && (
+        <tr className="text-center text-xs text-gray-500">
+          <td colSpan={3}>{swapSource.name} integration coming soon...</td>
+        </tr>
+      )}
     </>
   );
 }
