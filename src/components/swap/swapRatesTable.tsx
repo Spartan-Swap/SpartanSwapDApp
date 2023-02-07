@@ -1,22 +1,11 @@
-import { CoinGeckoLogoTemp } from "../../utils/swapSources";
-import { formatFromWei } from "../../utils/formatting";
+import { useAtom } from "jotai";
 
-import type { SwapSourceProps } from "../../utils/swapSources";
-import type { AssetProps } from "../assetSelect";
+import SwapRatesTableItem from "./swapRatesTableItem";
+import { allSwapRatesTableAtoms as atoms } from "../../state/globalStore";
 
-type SwapRatesTableProps = {
-  sources: SwapSourceProps[];
-  setSelectedSource: (value: string) => void;
-  selectedSource: string;
-  selectedAsset2: AssetProps;
-};
+export default function SwapRatesTable() {
+  const [allSourcesSplit] = useAtom(atoms.allSourcesAtomSplit);
 
-export default function SwapRatesTable({
-  sources,
-  setSelectedSource,
-  selectedSource,
-  selectedAsset2,
-}: SwapRatesTableProps) {
   return (
     <div className="px-2 sm:px-4 lg:px-6">
       <div className="flex flex-col">
@@ -48,71 +37,11 @@ export default function SwapRatesTable({
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {sources.map((swapSource) => (
-                    <tr
-                      key={swapSource.id}
-                      onClick={() => setSelectedSource(swapSource.id)}
-                      role="button"
-                      className={
-                        selectedSource === swapSource.id
-                          ? "z-10 border-indigo-200 bg-indigo-50"
-                          : ""
-                      }
-                    >
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {!swapSource.error ? (
-                          <div className="text-gray-900">
-                            {formatFromWei(swapSource.outputAmount)}
-                            <div className="ml-1 inline text-xs text-gray-500">
-                              {selectedAsset2.ticker}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="text-gray-900">
-                            {swapSource.error}
-                          </div>
-                        )}
-                        <div className="text-xs text-gray-500">
-                          ~$00,000.00
-                          <div className="ml-1 inline-block h-4 w-4 align-top">
-                            <CoinGeckoLogoTemp />
-                          </div>
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        <div className="text-gray-900">
-                          00.0000
-                          <div className="ml-1 inline text-xs text-gray-500">
-                            {/* IF CHAIN === 56 etc */}
-                            BNB
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          ~$0.00
-                          <div className="ml-1 inline-block h-4 w-4 align-top">
-                            <CoinGeckoLogoTemp />
-                          </div>
-                        </div>
-                      </td>
-                      <td
-                        className="relative whitespace-nowrap py-4 pl-4 pr-2 text-sm sm:pl-6"
-                        style={{
-                          backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.8)),url('${swapSource.imagesq}')`,
-                          backgroundSize: "cover",
-                        }}
-                      >
-                        <div className="flex justify-end text-end">
-                          <div className="">
-                            <div className="font-medium text-gray-900">
-                              {swapSource.name}
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              {swapSource.type}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                    </tr>
+                  {allSourcesSplit.map((swapSource) => (
+                    <SwapRatesTableItem
+                      swapSourceItem={swapSource}
+                      key={swapSource.toString()}
+                    />
                   ))}
                 </tbody>
               </table>

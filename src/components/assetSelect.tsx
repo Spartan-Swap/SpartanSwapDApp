@@ -1,4 +1,7 @@
 import { Fragment, useState } from "react";
+import Image from "next/image";
+import type { Address } from "wagmi";
+import { useAtom } from "jotai";
 import { Combobox, Dialog, Transition } from "@headlessui/react";
 import {
   ArrowTopRightOnSquareIcon,
@@ -7,17 +10,9 @@ import {
 } from "@heroicons/react/20/solid";
 import { UsersIcon } from "@heroicons/react/24/outline";
 import { ChevronRightIcon } from "@heroicons/react/20/solid";
+
 import { classNames, shortenString } from "../utils/formatting";
-
-import type { Address } from "wagmi";
-import Image from "next/image";
-
-export type AssetSelectProps = {
-  selectedAsset: AssetProps;
-  setSelectedAsset: (value: AssetProps) => void;
-  isOpen: boolean;
-  setOpen: (value: boolean) => void;
-};
+import { allAssetSelectAtoms as atoms } from "../state/globalStore";
 
 export type AssetProps = {
   name: string;
@@ -130,13 +125,31 @@ export const assets: AssetProps[] = [
 
 const recent = [assets[6], assets[4], assets[2], assets[0], assets[3]];
 
-export default function AssetSelect({
-  selectedAsset,
-  setSelectedAsset,
-  isOpen,
-  setOpen,
-}: AssetSelectProps) {
+export default function AssetSelect() {
   const [query, setQuery] = useState("");
+
+  const [assetSelectOpen, setAssetSelectOpen] = useAtom(
+    atoms.assetSelectOpenAtom
+  );
+  const [assetId] = useAtom(atoms.assetIdAtom);
+  const [selectedAsset1, setSelectedAsset1] = useAtom(atoms.selectedAsset1Atom);
+  const [selectedAsset2, setSelectedAsset2] = useAtom(atoms.selectedAsset2Atom);
+
+  const getSelectedAsset = () => {
+    if (assetId === 1) {
+      return selectedAsset1;
+    } else {
+      return selectedAsset2;
+    }
+  };
+
+  const getSetSelectedAsset = (assetNumber: AssetProps) => {
+    if (assetId === 1) {
+      return setSelectedAsset1(assetNumber);
+    } else {
+      return setSelectedAsset2(assetNumber);
+    }
+  };
 
   const filteredAssets =
     query === ""
@@ -147,12 +160,12 @@ export default function AssetSelect({
 
   return (
     <Transition.Root
-      show={isOpen}
+      show={assetSelectOpen}
       as={Fragment}
       afterLeave={() => setQuery("")}
       appear
     >
-      <Dialog as="div" className="relative z-10" onClose={setOpen}>
+      <Dialog as="div" className="relative z-10" onClose={setAssetSelectOpen}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -177,8 +190,8 @@ export default function AssetSelect({
           >
             <Dialog.Panel className="mx-auto max-w-3xl transform divide-y divide-gray-500 divide-opacity-20 overflow-hidden rounded-xl bg-gray-900 shadow-2xl transition-all">
               <Combobox
-                value={selectedAsset}
-                onChange={(asset) => setSelectedAsset(asset)}
+                value={getSelectedAsset()}
+                onChange={(asset) => getSetSelectedAsset(asset)}
               >
                 {({ activeOption }) => (
                   <>
@@ -291,23 +304,23 @@ export default function AssetSelect({
                           </div>
                         </div>
 
-                        {selectedAsset && (
+                        {getSelectedAsset() && (
                           <div className="hidden h-96 w-1/2 flex-none flex-col divide-y divide-gray-500 divide-opacity-20 overflow-y-auto sm:flex">
                             <div className="flex-none p-6 text-center">
                               <div className="relative mx-auto h-16 w-16 rounded-full">
                                 <Image
-                                  src={selectedAsset.logo}
+                                  src={getSelectedAsset().logo}
                                   alt=""
                                   fill
                                   className="object-contain"
                                 />
                               </div>
                               <h2 className="mt-3 font-semibold text-gray-300">
-                                {selectedAsset.name}
+                                {getSelectedAsset().name}
                               </h2>
                               <p className="text-sm leading-6 text-gray-500">
-                                {selectedAsset.ticker}{" "}
-                                {shortenString(selectedAsset.address)}
+                                {getSelectedAsset().ticker}{" "}
+                                {shortenString(getSelectedAsset().address)}
                               </p>
                               <span>
                                 <DocumentDuplicateIcon
@@ -324,11 +337,12 @@ export default function AssetSelect({
                             </div>
                             <div className="flex flex-auto flex-col justify-between p-6">
                               <div className="text-sm text-gray-400">
-                                {selectedAsset.ticker} is a {selectedAsset.type}{" "}
-                                on the BNB Smartchain network{" "}
-                                {selectedAsset.peg !== "" &&
+                                {getSelectedAsset().ticker} is a{" "}
+                                {getSelectedAsset().type} on the BNB Smartchain
+                                network{" "}
+                                {getSelectedAsset().peg !== "" &&
                                   "that is pegged to " +
-                                    selectedAsset.peg +
+                                    getSelectedAsset().peg +
                                     " asset price"}
                               </div>
                               <dl className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm text-gray-400">
@@ -337,17 +351,17 @@ export default function AssetSelect({
                                 </dt>
                                 <dd className="truncate">
                                   <a
-                                    href={selectedAsset.site}
+                                    href={getSelectedAsset().site}
                                     className="text-indigo-600 underline"
                                   >
-                                    {selectedAsset.site}
+                                    {getSelectedAsset().site}
                                   </a>
                                 </dd>
                               </dl>
                               <button
                                 type="button"
                                 className="mt-6 rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                                onClick={() => setOpen(false)}
+                                onClick={() => setAssetSelectOpen(false)}
                               >
                                 Select / Close
                               </button>

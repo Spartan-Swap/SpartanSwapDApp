@@ -1,25 +1,26 @@
 import { Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { useAccount } from "wagmi";
+import { useAtom } from "jotai";
 
 import { WalletDetails } from "./walletDetails";
 import WalletSelect from "./walletSelect";
-export type WalletModalProps = {
-  isOpen: boolean;
-  setOpen: (value: boolean) => void;
-};
 
-export default function WalletModal({ isOpen, setOpen }: WalletModalProps) {
+import { allWalletModalAtoms as atoms } from "../../state/globalStore";
+
+export default function WalletModal() {
   const { isConnected } = useAccount();
+
+  const [walletOpen, setWalletOpen] = useAtom(atoms.walletOpenAtom);
 
   return (
     <Transition.Root
-      show={isOpen}
+      show={walletOpen}
       as={Fragment}
       // afterLeave={() => setQuery("")} // Handle clearing child props on leave (like search queries)
       appear
     >
-      <Dialog as="div" className="relative z-10" onClose={setOpen}>
+      <Dialog as="div" className="relative z-10" onClose={setWalletOpen}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"

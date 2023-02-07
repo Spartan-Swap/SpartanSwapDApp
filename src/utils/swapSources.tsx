@@ -1,3 +1,10 @@
+import { gasDefault, ssUtilsAddress } from "./const";
+import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
+
+import type { Provider } from "@wagmi/core";
+import { Contract } from "ethers";
+import { AssetProps } from "../components/assetSelect";
+
 export const CoinGeckoLogoTemp = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -67,20 +74,139 @@ export type SwapSourceProps = {
   type: "Swap Aggregator" | "Automated Market Maker";
   imagesq: string;
   imagelg: string;
+  integrated: boolean;
   outputAmount: string;
+  loading: boolean;
   error: string;
+  extCall: (
+    asset1: AssetProps,
+    asset2: AssetProps,
+    weiInput: string,
+    provider?: Provider
+  ) => Promise<[string, string]>;
 };
 
-export const spartanProtocolSource: SwapSourceProps = {
+// const spartanProtocolV1SourceExtCall = async (
+//   selectedAsset1Addr: string,
+//   selectedAsset2Addr: string,
+//   weiInput: string,
+//   provider: Provider | undefined
+// ) => {
+//   let returnVal: [string, string] = ["", ""];
+//   if (provider) {
+//     const quoteSPV2Contract = new Contract(
+//       ssUtilsAddress,
+//       ssUtilsAbi.abi,
+//       provider
+//     );
+//     if (quoteSPV2Contract) {
+//       await quoteSPV2Contract.callStatic
+//         ?.getSwapOutput?.(selectedAsset1Addr, selectedAsset2Addr, weiInput)
+//         .then((result) => {
+//           if (result) {
+//             returnVal = [result.toString(), ""];
+//           } else {
+//             returnVal = ["0", "Error"];
+//           }
+//         });
+//     }
+//   }
+//   return returnVal;
+// };
+
+// export const spartanProtocolV1Source: SwapSourceProps = {
+//   id: "SPV1",
+//   name: "Spartan Protocol V1",
+//   type: "Automated Market Maker",
+//   imagesq:
+//     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/spartav2.svg",
+//   imagelg:
+//     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/sparta-text-short.svg",
+//   outputAmount: "0",
+//   loading: false,
+//   error: "",
+//   extCall: (asset1Addr, asset2Addr, weiInput, providerObj) =>
+//     spartanProtocolV1SourceExtCall(
+//       asset1Addr,
+//       asset2Addr,
+//       weiInput,
+//       providerObj
+//     ),
+// };
+
+const spartanProtocolV2SourceExtCall = async (
+  selectedAsset1: AssetProps,
+  selectedAsset2: AssetProps,
+  weiInput: string,
+  provider: Provider | undefined
+) => {
+  let returnVal: [string, string] = ["", ""];
+  if (provider) {
+    const quoteSPV2Contract = new Contract(
+      ssUtilsAddress,
+      ssUtilsAbi.abi,
+      provider
+    );
+    if (quoteSPV2Contract) {
+      await quoteSPV2Contract.callStatic
+        ?.getSwapOutput?.(
+          selectedAsset1.address,
+          selectedAsset2.address,
+          weiInput
+        )
+        .then((result) => {
+          if (result) {
+            returnVal = [result.toString(), ""];
+          } else {
+            returnVal = ["0", "Error"];
+          }
+        });
+    }
+  }
+  return returnVal;
+};
+
+export const spartanProtocolV2Source: SwapSourceProps = {
   id: "SPV2",
-  name: "Spartan Protocol",
+  name: "Spartan Protocol V2",
   type: "Automated Market Maker",
   imagesq:
     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/spartav2.svg",
   imagelg:
     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/sparta-text-short.svg",
+  integrated: false,
   outputAmount: "0",
+  loading: false,
   error: "",
+  extCall: (asset1, asset2, weiInput, providerObj) =>
+    spartanProtocolV2SourceExtCall(asset1, asset2, weiInput, providerObj),
+};
+
+const oneInchSourceExtCall = async (
+  selectedAsset1: AssetProps,
+  selectedAsset2: AssetProps,
+  weiInput: string
+) => {
+  let returnVal: [string, string] = ["", ""];
+  const queryUrl =
+    "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+    selectedAsset1.address +
+    "&toTokenAddress=" +
+    selectedAsset2.address +
+    "&amount=" +
+    weiInput +
+    "&gasPrice=" +
+    gasDefault;
+  await fetch(queryUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        returnVal = ["0", data.error];
+      } else {
+        returnVal = [data.toTokenAmount, ""];
+      }
+    });
+  return returnVal;
 };
 
 export const oneInchSource: SwapSourceProps = {
@@ -89,22 +215,102 @@ export const oneInchSource: SwapSourceProps = {
   type: "Swap Aggregator",
   imagesq: "https://cryptologos.cc/logos/1inch-1inch-logo.svg",
   imagelg: "https://1inch.io/img/pressRoom/logo.svg",
+  integrated: false,
   outputAmount: "0",
+  loading: false,
   error: "",
+  extCall: (asset1Addr, asset2Addr, weiInput) =>
+    oneInchSourceExtCall(asset1Addr, asset2Addr, weiInput),
+};
+
+const zeroXExtCall = async (
+  selectedAsset1: AssetProps,
+  selectedAsset2: AssetProps,
+  weiInput: string
+) => {
+  let returnVal: [string, string] = ["", ""];
+  const queryUrl =
+    "https://bsc.api.0x.org/swap/v1/quote?sellToken=" +
+    selectedAsset1.address +
+    "&buyToken=" +
+    selectedAsset2.address +
+    "&sellAmount=" +
+    weiInput +
+    "&gasPrice=" +
+    gasDefault +
+    "&affiliateAddress=0x683550a863772d435da110679131758b6a69aecb"; // Just for DAU tracking, not actual affiliate fees
+  await fetch(queryUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.reason) {
+        returnVal = ["0", data.reason];
+      } else {
+        returnVal = [data.buyAmount, ""];
+      }
+    });
+  return returnVal;
+};
+
+export const zeroXSource: SwapSourceProps = {
+  id: "0X",
+  name: "0x",
+  type: "Swap Aggregator",
+  imagesq: "https://cryptologos.cc/logos/0x-zrx-logo.svg",
+  imagelg: "https://cryptologos.cc/logos/0x-zrx-logo.svg",
+  integrated: false,
+  outputAmount: "0",
+  loading: false,
+  error: "",
+  extCall: (asset1Addr, asset2Addr, weiInput) =>
+    zeroXExtCall(asset1Addr, asset2Addr, weiInput),
+};
+
+const pancakeswapExtCall = async (
+  selectedAsset1: AssetProps,
+  selectedAsset2: AssetProps,
+  weiInput: string
+) => {
+  const result: [string, string] = ["", ""];
+  // const queryUrl =
+  //   "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
+  //   selectedAsset1Addr +
+  //   "&toTokenAddress=" +
+  //   selectedAsset2Addr +
+  //   "&amount=" +
+  //   weiInput +
+  //   "&gasPrice=" +
+  //   gasDefault;
+  // fetch(queryUrl)
+  //   .then((response) => response.json())
+  //   .then((data) => {
+  //     if (data.error) {
+  //       result = ["0", data.error];
+  //     } else {
+  //       result = [data.toTokenAmount, ""];
+  //     }
+  //   });
+  return result;
+};
+
+export const pancakeswapSource: SwapSourceProps = {
+  id: "PCS",
+  name: "PancakeSwap",
+  type: "Automated Market Maker",
+  imagesq: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
+  imagelg: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
+  integrated: false,
+  outputAmount: "0",
+  loading: false,
+  error: "",
+  extCall: (asset1Addr, asset2Addr, weiInput) =>
+    pancakeswapExtCall(asset1Addr, asset2Addr, weiInput),
 };
 
 export const swapSources: SwapSourceProps[] = [
-  spartanProtocolSource,
+  spartanProtocolV2Source,
   oneInchSource,
-  {
-    id: "PCS",
-    name: "PancakeSwap",
-    type: "Automated Market Maker",
-    imagesq: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
-    imagelg: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
-    outputAmount: "0",
-    error: "",
-  },
+  zeroXSource,
+  pancakeswapSource,
 ];
 
 export type Provider1InchProps = {
