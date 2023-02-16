@@ -1,4 +1,4 @@
-import { gasDefault, ssUtilsAddress } from "./const";
+import { address0, gasDefault, ssUtilsAddress } from "./const";
 import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
 
 import type { Provider } from "@wagmi/core";
@@ -187,12 +187,14 @@ const oneInchSourceExtCall = async (
   selectedAsset2: AssetProps,
   weiInput: string
 ) => {
+  const _asset1Addr = selectedAsset1.address.toLowerCase() === address0 ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : selectedAsset1.address
+  const _asset2Addr = selectedAsset2.address.toLowerCase() === address0 ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : selectedAsset2.address
   let returnVal: [string, string] = ["", ""];
   const queryUrl =
     "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
-    selectedAsset1.address +
+    _asset1Addr +
     "&toTokenAddress=" +
-    selectedAsset2.address +
+    _asset2Addr +
     "&amount=" +
     weiInput +
     "&gasPrice=" +
@@ -228,12 +230,16 @@ const zeroXExtCall = async (
   selectedAsset2: AssetProps,
   weiInput: string
 ) => {
+  // TODO: Handle gas asset (coin) string based on network selected
+  // ie. if ethereum mainnet and address === address(0) use "ETH" instead of "BNB"
+  const _asset1Addr = selectedAsset1.address.toLowerCase() === address0 ? "BNB" : selectedAsset1.address
+  const _asset2Addr = selectedAsset2.address.toLowerCase() === address0 ? "BNB" : selectedAsset2.address
   let returnVal: [string, string] = ["", ""];
   const queryUrl =
     "https://bsc.api.0x.org/swap/v1/quote?sellToken=" +
-    selectedAsset1.address +
+    _asset1Addr +
     "&buyToken=" +
-    selectedAsset2.address +
+    _asset2Addr +
     "&sellAmount=" +
     weiInput +
     "&gasPrice=" +
