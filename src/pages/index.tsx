@@ -147,18 +147,18 @@ const Swap: NextPage = () => {
                     className="ml-1 inline h-4 w-4 text-gray-700"
                     aria-hidden="true"
                     role="button"
-                    // onClick={() => TODO: Copy the address to clipboard }
+                  // onClick={() => TODO: Copy the address to clipboard }
                   />
                   <ArrowTopRightOnSquareIcon
                     className="ml-1 inline h-4 w-4 text-gray-700"
                     aria-hidden="true"
                     role="button"
-                    // onClick={() => TODO: Open wallet in explorer }
+                  // onClick={() => TODO: Open wallet in explorer }
                   />
                 </span>
               </div>
               <div className="w-max justify-self-end">
-                ~$0.00{" "}
+                ~$?{" "}
                 <div className="inline-block h-4 w-4 align-middle">
                   <CoinGeckoLogoTemp />
                 </div>
@@ -202,7 +202,7 @@ const Swap: NextPage = () => {
                   className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
                   aria-hidden="true"
                   role="button"
-                  // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
+                // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
                 />
               </div>
               <div className="w-max">
@@ -212,18 +212,18 @@ const Swap: NextPage = () => {
                     className="ml-1 inline h-4 w-4 text-gray-700"
                     aria-hidden="true"
                     role="button"
-                    // onClick={() => TODO: Copy the address to clipboard }
+                  // onClick={() => TODO: Copy the address to clipboard }
                   />
                   <ArrowTopRightOnSquareIcon
                     className="ml-1 inline h-4 w-4 text-gray-700"
                     aria-hidden="true"
                     role="button"
-                    // onClick={() => TODO: Open wallet in explorer }
+                  // onClick={() => TODO: Open wallet in explorer }
                   />
                 </span>
               </div>
               <div className="w-max justify-self-end">
-                ~$0.00{" "}
+                ~$?{" "}
                 <div className="inline-block h-4 w-4 align-middle">
                   <CoinGeckoLogoTemp />
                 </div>

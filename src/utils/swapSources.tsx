@@ -3,7 +3,7 @@ import ssUtilsAbi from "../utils/ABIs/56/SPV2/SpartanSwapUtils.json";
 
 import type { Provider } from "@wagmi/core";
 import { Contract } from "ethers";
-import { AssetProps } from "../components/assetSelect";
+import type { AssetProps } from "../components/assetSelect";
 
 export const CoinGeckoLogoTemp = () => (
   <svg
@@ -76,6 +76,7 @@ export type SwapSourceProps = {
   imagelg: string;
   integrated: boolean;
   outputAmount: string;
+  gasEstimate: string;
   loading: boolean;
   error: string;
   extCall: (
@@ -83,7 +84,14 @@ export type SwapSourceProps = {
     asset2: AssetProps,
     weiInput: string,
     provider?: Provider
-  ) => Promise<[string, string]>;
+  ) => Promise<[string, string, string]>;
+  extCallFinal: (
+    asset1: AssetProps,
+    asset2: AssetProps,
+    weiInput: string,
+    provider?: Provider,
+    userWalletAddr?: string
+  ) => Promise<[string, string, string]>;
 };
 
 // const spartanProtocolV1SourceExtCall = async (
@@ -134,13 +142,19 @@ export type SwapSourceProps = {
 //     ),
 // };
 
+const spartaV2TokenAddr = "0x3910db0600eA925F63C36DdB1351aB6E2c6eb102";
+
 const spartanProtocolV2SourceExtCall = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
   weiInput: string,
-  provider: Provider | undefined
+  provider: Provider | undefined,
+  userWalletAddr?: string
 ) => {
-  let returnVal: [string, string] = ["", ""];
+  const gasEst = [selectedAsset1.address.toLowerCase(), selectedAsset2.address.toLowerCase()].includes(spartaV2TokenAddr.toLowerCase())
+    ? "230000" // Single-swap gas estimate
+    : "320000" // Double-swap gas estimate
+  let returnVal: [string, string, string] = ["", "", ""];
   if (provider) {
     const quoteSPV2Contract = new Contract(
       ssUtilsAddress,
@@ -156,9 +170,9 @@ const spartanProtocolV2SourceExtCall = async (
         )
         .then((result) => {
           if (result) {
-            returnVal = [result.toString(), ""];
+            returnVal = [result.toString(), gasEst, ""];
           } else {
-            returnVal = ["0", "Error"];
+            returnVal = ["0", "", "Error"];
           }
         });
     }
@@ -176,10 +190,14 @@ export const spartanProtocolV2Source: SwapSourceProps = {
     "https://raw.githubusercontent.com/spartan-protocol/resources/7badad6b092e8c07ab4c97d04802ad2d9009a379/logos/rendered/svg/sparta-text-short.svg",
   integrated: false,
   outputAmount: "0",
+  gasEstimate: "",
   loading: false,
   error: "",
   extCall: (asset1, asset2, weiInput, providerObj) =>
     spartanProtocolV2SourceExtCall(asset1, asset2, weiInput, providerObj),
+  extCallFinal: (asset1, asset2, weiInput, providerObj, userWalletAddr) =>
+    spartanProtocolV2SourceExtCall(asset1, asset2, weiInput, providerObj, userWalletAddr),
+  // TODO: Update SSwap API quote endpoint to include calldata via SP router
 };
 
 const oneInchSourceExtCall = async (
@@ -189,7 +207,7 @@ const oneInchSourceExtCall = async (
 ) => {
   const _asset1Addr = selectedAsset1.address.toLowerCase() === address0 ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : selectedAsset1.address
   const _asset2Addr = selectedAsset2.address.toLowerCase() === address0 ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : selectedAsset2.address
-  let returnVal: [string, string] = ["", ""];
+  let returnVal: [string, string, string] = ["", "", ""];
   const queryUrl =
     "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
     _asset1Addr +
@@ -203,9 +221,41 @@ const oneInchSourceExtCall = async (
     .then((response) => response.json())
     .then((data) => {
       if (data.error) {
-        returnVal = ["0", data.error];
+        returnVal = ["0", "", data.error];
       } else {
-        returnVal = [data.toTokenAmount, ""];
+        returnVal = [data.toTokenAmount, data.estimatedGas.toString(), ""];
+      }
+    });
+  return returnVal;
+};
+
+const oneInchSourceExtCallFinal = async (
+  selectedAsset1: AssetProps,
+  selectedAsset2: AssetProps,
+  weiInput: string,
+  userWalletAddr?: string,
+) => {
+  const _asset1Addr = selectedAsset1.address.toLowerCase() === address0 ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : selectedAsset1.address
+  const _asset2Addr = selectedAsset2.address.toLowerCase() === address0 ? "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE" : selectedAsset2.address
+  let returnVal: [string, string, string] = ["", "", ""];
+  const queryUrl =
+    "https://api.1inch.io/v5.0/56/swap?&fromTokenAddress=" +
+      _asset1Addr +
+      "&toTokenAddress=" +
+      _asset2Addr +
+      "&amount=" +
+      weiInput +
+      "&gasPrice=" +
+      gasDefault +
+      userWalletAddr ? "&fromAddress=" +
+    userWalletAddr : "";
+  await fetch(queryUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        returnVal = ["0", "", data.error];
+      } else {
+        returnVal = [data.toTokenAmount, data.estimatedGas.toString(), ""];
       }
     });
   return returnVal;
@@ -219,39 +269,44 @@ export const oneInchSource: SwapSourceProps = {
   imagelg: "https://1inch.io/img/pressRoom/logo.svg",
   integrated: false,
   outputAmount: "0",
+  gasEstimate: "",
   loading: false,
   error: "",
   extCall: (asset1Addr, asset2Addr, weiInput) =>
     oneInchSourceExtCall(asset1Addr, asset2Addr, weiInput),
+  extCallFinal: (asset1, asset2, weiInput, providerObj, userWalletAddr) =>
+    oneInchSourceExtCallFinal(asset1, asset2, weiInput, userWalletAddr),
 };
 
 const zeroXExtCall = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
-  weiInput: string
+  weiInput: string,
+  userWalletAddr?: string
 ) => {
   // TODO: Handle gas asset (coin) string based on network selected
   // ie. if ethereum mainnet and address === address(0) use "ETH" instead of "BNB"
   const _asset1Addr = selectedAsset1.address.toLowerCase() === address0 ? "BNB" : selectedAsset1.address
   const _asset2Addr = selectedAsset2.address.toLowerCase() === address0 ? "BNB" : selectedAsset2.address
-  let returnVal: [string, string] = ["", ""];
+  let returnVal: [string, string, string] = ["", "", ""];
   const queryUrl =
     "https://bsc.api.0x.org/swap/v1/quote?sellToken=" +
-    _asset1Addr +
-    "&buyToken=" +
-    _asset2Addr +
-    "&sellAmount=" +
-    weiInput +
-    "&gasPrice=" +
-    gasDefault +
-    "&affiliateAddress=0x683550a863772d435da110679131758b6a69aecb"; // Just for DAU tracking, not actual affiliate fees
+      _asset1Addr +
+      "&buyToken=" +
+      _asset2Addr +
+      "&sellAmount=" +
+      weiInput +
+      "&gasPrice=" +
+      gasDefault +
+      "&affiliateAddress=0x683550a863772d435da110679131758b6a69aecb" + // Just for DAU tracking, not actual affiliate fees
+      userWalletAddr ? "&takerAddress=" + userWalletAddr : "";
   await fetch(queryUrl)
     .then((response) => response.json())
     .then((data) => {
       if (data.reason) {
-        returnVal = ["0", data.reason];
+        returnVal = ["0", "", data.reason];
       } else {
-        returnVal = [data.buyAmount, ""];
+        returnVal = [data.buyAmount, data.estimatedGas, ""];
       }
     });
   return returnVal;
@@ -265,10 +320,13 @@ export const zeroXSource: SwapSourceProps = {
   imagelg: "https://cryptologos.cc/logos/0x-zrx-logo.svg",
   integrated: false,
   outputAmount: "0",
+  gasEstimate: "",
   loading: false,
   error: "",
   extCall: (asset1Addr, asset2Addr, weiInput) =>
     zeroXExtCall(asset1Addr, asset2Addr, weiInput),
+  extCallFinal: (asset1Addr, asset2Addr, weiInput, providerObj, userWalletAddr) =>
+    zeroXExtCall(asset1Addr, asset2Addr, weiInput, userWalletAddr),
 };
 
 const pancakeswapExtCall = async (
@@ -276,7 +334,7 @@ const pancakeswapExtCall = async (
   selectedAsset2: AssetProps,
   weiInput: string
 ) => {
-  const result: [string, string] = ["", ""];
+  const result: [string, string, string] = ["", "", ""];
   // const queryUrl =
   //   "https://api.1inch.io/v5.0/56/quote?&fromTokenAddress=" +
   //   selectedAsset1Addr +
@@ -306,9 +364,12 @@ export const pancakeswapSource: SwapSourceProps = {
   imagelg: "https://cryptologos.cc/logos/pancakeswap-cake-logo.svg",
   integrated: false,
   outputAmount: "0",
+  gasEstimate: "",
   loading: false,
   error: "",
   extCall: (asset1Addr, asset2Addr, weiInput) =>
+    pancakeswapExtCall(asset1Addr, asset2Addr, weiInput),
+  extCallFinal: (asset1Addr, asset2Addr, weiInput) =>
     pancakeswapExtCall(asset1Addr, asset2Addr, weiInput),
 };
 

@@ -2,7 +2,9 @@ import { CoinGeckoLogoTemp } from "../../utils/swapSources";
 import {
   BN,
   classNames,
+  convertFromGwei,
   convertToWei,
+  formatFromGwei,
   formatFromWei,
 } from "../../utils/formatting";
 
@@ -14,6 +16,7 @@ import { useProvider } from "wagmi";
 import type { SwapSourceProps } from "../../utils/swapSources";
 import type { PrimitiveAtom } from "jotai";
 import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import { gasDefault } from "../../utils/const";
 
 type SwapRatesTableItemProps = {
   swapSourceItem: PrimitiveAtom<SwapSourceProps>;
@@ -51,11 +54,12 @@ export default function SwapRatesTableItem({
           weiInput,
           provider
         );
-        const [outputAmount, errorMsg] = await theCall;
+        const [outputAmount, gasEstimate, errorMsg] = await theCall;
         if (outputAmount !== "") {
           setSwapSource((prevItem) => ({
             ...prevItem,
             outputAmount: outputAmount,
+            gasEstimate: gasEstimate,
             error: errorMsg,
           }));
         }
@@ -109,7 +113,7 @@ export default function SwapRatesTableItem({
             <div className="text-gray-900">{swapSource.error}</div>
           )}
           <div className="text-xs text-gray-500">
-            ~$00,000.00
+            ~$?
             <div className="ml-1 inline-block h-4 w-4 align-top">
               <CoinGeckoLogoTemp />
             </div>
@@ -117,14 +121,14 @@ export default function SwapRatesTableItem({
         </td>
         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
           <div className="text-gray-900">
-            00.0000
+            {swapSource.gasEstimate !== "" ? formatFromGwei(BN(convertFromGwei(gasDefault)).times(swapSource.gasEstimate).toString()) : ""}
             <div className="ml-1 inline text-xs text-gray-500">
               {/* IF CHAIN === 56 etc */}
-              BNB
+              {swapSource.gasEstimate !== "" ? "BNB" : "Unknown"}
             </div>
           </div>
           <div className="text-xs text-gray-500">
-            ~$0.00
+            ~${swapSource.gasEstimate !== "" ? "?" : "?"}
             <div className="ml-1 inline-block h-4 w-4 align-top">
               <CoinGeckoLogoTemp />
             </div>
@@ -147,7 +151,7 @@ export default function SwapRatesTableItem({
                   )}
                   aria-hidden="true"
                   role="button"
-                  // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
+                // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
                 />
                 {swapSource.name}
               </div>
