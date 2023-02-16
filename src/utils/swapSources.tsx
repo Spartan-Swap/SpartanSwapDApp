@@ -289,17 +289,18 @@ const zeroXExtCall = async (
   const _asset1Addr = selectedAsset1.address.toLowerCase() === address0 ? "BNB" : selectedAsset1.address
   const _asset2Addr = selectedAsset2.address.toLowerCase() === address0 ? "BNB" : selectedAsset2.address
   let returnVal: [string, string, string] = ["", "", ""];
+  const takerString = userWalletAddr ? "&takerAddress=" + userWalletAddr : "";
   const queryUrl =
     "https://bsc.api.0x.org/swap/v1/quote?sellToken=" +
-      _asset1Addr +
-      "&buyToken=" +
-      _asset2Addr +
-      "&sellAmount=" +
-      weiInput +
-      "&gasPrice=" +
-      gasDefault +
-      "&affiliateAddress=0x683550a863772d435da110679131758b6a69aecb" + // Just for DAU tracking, not actual affiliate fees
-      userWalletAddr ? "&takerAddress=" + userWalletAddr : "";
+    _asset1Addr +
+    "&buyToken=" +
+    _asset2Addr +
+    "&sellAmount=" +
+    weiInput +
+    "&gasPrice=" +
+    gasDefault +
+    "&affiliateAddress=0x683550a863772d435da110679131758b6a69aecb" + // Just for DAU tracking, not actual affiliate fees
+    takerString;
   await fetch(queryUrl)
     .then((response) => response.json())
     .then((data) => {
@@ -324,7 +325,7 @@ export const zeroXSource: SwapSourceProps = {
   loading: false,
   error: "",
   extCall: (asset1Addr, asset2Addr, weiInput) =>
-    zeroXExtCall(asset1Addr, asset2Addr, weiInput),
+    zeroXExtCall(asset1Addr, asset2Addr, weiInput, undefined),
   extCallFinal: (asset1Addr, asset2Addr, weiInput, providerObj, userWalletAddr) =>
     zeroXExtCall(asset1Addr, asset2Addr, weiInput, userWalletAddr),
 };

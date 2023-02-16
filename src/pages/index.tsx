@@ -1,5 +1,4 @@
 import type { NextPage } from "next";
-import { useEffect } from "react";
 import AssetSelect from "../components/assetSelect";
 import PageHeading from "../components/pageHeading";
 import {
@@ -43,9 +42,6 @@ const Swap: NextPage = () => {
   const [, setAssetId] = useAtom(atoms.assetIdAtom);
   const [selectedSource] = useAtom(atoms.selectedSourceAtom);
   const [, setInputAmount] = useAtom(atoms.inputAmountAtom);
-  const [outputAmount, setOutputAmount] = useAtom(atoms.outputAmountAtom);
-  // Arrays - candidates for splitAtom(peopleAtom)
-  const [allSources] = useAtom(atoms.allSourcesAtom);
   // Objects - candidates for focusAtom(dataAtom, (optic) => optic.prop('people'))
   const [selectedAsset1] = useAtom(atoms.selectedAsset1Atom);
   const [selectedAsset2] = useAtom(atoms.selectedAsset2Atom);
@@ -63,13 +59,6 @@ const Swap: NextPage = () => {
     setAssetId(assetId);
     setassetSelectOpen(true);
   };
-
-  useEffect(() => {
-    const _item = allSources.find((x) => x.id === selectedSource);
-    if (_item) {
-      setOutputAmount(_item.outputAmount);
-    }
-  }, [selectedSource, allSources]);
 
   const setInput = (units: string) => {
     const el = document.getElementById("inputUnits1") as HTMLInputElement;
@@ -195,7 +184,7 @@ const Swap: NextPage = () => {
                   placeholder="Sell Units"
                   className="text-right"
                   id="inputUnits2"
-                  value={convertFromWei(outputAmount)}
+                  value={convertFromWei(selectedSource.outputAmount)}
                   disabled
                 />
                 <ArrowPathIcon

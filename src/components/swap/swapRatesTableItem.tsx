@@ -62,6 +62,9 @@ export default function SwapRatesTableItem({
             gasEstimate: gasEstimate,
             error: errorMsg,
           }));
+          if (BN(outputAmount).isGreaterThan(selectedSource.outputAmount)) {
+            setSelectedSource(swapSource)
+          }
         }
         // If chainId === eth
         // If chainId === etc.etc.etc
@@ -93,10 +96,10 @@ export default function SwapRatesTableItem({
   return (
     <>
       <tr
-        onClick={() => setSelectedSource(swapSource.id)}
+        onClick={() => setSelectedSource(swapSource)}
         role="button"
         className={
-          selectedSource === swapSource.id
+          selectedSource.id === swapSource.id
             ? "z-10 border-indigo-200 bg-indigo-50"
             : ""
         }

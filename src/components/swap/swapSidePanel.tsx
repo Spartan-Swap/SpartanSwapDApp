@@ -1,23 +1,18 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAtom } from "jotai";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
 
-import { classNames } from "../../utils/formatting";
-import { swapSources, spartanProtocolV2Source } from "../../utils/swapSources";
+import { BN, classNames, convertFromGwei, formatFromGwei, formatFromWei } from "../../utils/formatting";
 import { allSwapSidePanelAtoms as atoms } from "../../state/globalStore";
 
-import type { SwapSourceProps } from "../../utils/swapSources";
+import { gasDefault } from "../../utils/const";
 
 const tabs: string[] = ["Swap Details", "Price Chart"];
 
 export function SwapSidePanel() {
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
-  const [sourceInfo, setSourceInfo] = useState<SwapSourceProps>(
-    spartanProtocolV2Source
-  );
 
   const [selectedSource] = useAtom(atoms.selectedSourceAtom);
-  const [inputAmount] = useAtom(atoms.inputAmountAtom);
   const [selectedAsset1] = useAtom(atoms.selectedAsset1Atom);
   const [selectedAsset2] = useAtom(atoms.selectedAsset2Atom);
   const [, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
@@ -26,23 +21,12 @@ export function SwapSidePanel() {
     setSelectedTab(tabs.find((tab) => tab === newTab));
   };
 
-  useEffect(() => {
-    const _source = swapSources.filter(
-      (source) => source.id === selectedSource
-    )[0];
-    if (_source) {
-      setSourceInfo(_source);
-    } else {
-      setSourceInfo(spartanProtocolV2Source);
-    }
-  }, [selectedSource]);
-
   return (
     <div
       id="swapInfoSection"
       className="h-100 rounded-md p-3"
       style={{
-        backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)),url('${sourceInfo.imagesq}')`,
+        backgroundImage: `linear-gradient(to right, rgba(255, 255, 255, 1), rgba(255, 255, 255, 0.7)),url('${selectedSource.imagesq}')`,
         backgroundSize: "700px",
         backgroundPosition: "left",
       }}
@@ -87,7 +71,7 @@ export function SwapSidePanel() {
                 className="h-5 text-gray-700"
                 aria-hidden="true"
                 role="button"
-                // onClick={() => TODO: Open settings }
+              // onClick={() => TODO: Open settings }
               />
             </div>
           </nav>
@@ -96,19 +80,19 @@ export function SwapSidePanel() {
       {selectedTab === tabs[0] && (
         <div className="py-2">
           <div className="">
-            The selected swap provider is {sourceInfo.name}
+            The selected swap provider is {selectedSource.name}
           </div>
           <div className="py-2" />
           <div className="">
-            Your {inputAmount} {selectedAsset1.ticker} will route via these
+            Your {selectedSource.outputAmount} {selectedAsset1.ticker} will route via these
             pools:
           </div>
           <div className="">*Route Chart*</div>
           <div className="py-2" />
           <div className="">
-            Estimated receiving: 00,000.00 {selectedAsset2.ticker}
+            Estimated receiving: {formatFromWei(selectedSource.outputAmount)} {selectedAsset2.ticker}
           </div>
-          <div className="">Estimated gas cost: ~0.00000 BNB</div>
+          <div className="">Estimated gas cost: ~{formatFromGwei(BN(selectedSource.gasEstimate).times(convertFromGwei(gasDefault)).toString())} BNB</div>
           <div className="py-2" />
           <div>
             <button

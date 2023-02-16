@@ -1,4 +1,5 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
+import { useEffect } from "react";
 import { classNames } from "../../utils/formatting";
 
 const steps = [
@@ -6,13 +7,6 @@ const steps = [
     // Check token1 && token2 approvals simulataneously and every X seconds
     name: "Approve Token1",
     description: "Allow Contract1 to handle your Token1",
-    href: "#",
-    status: "complete",
-  },
-  {
-    // Check token1 && token2 approvals simulataneously and every X seconds
-    name: "Approve Token2",
-    description: "Allow Contract1 to handle your Token2",
     href: "#",
     status: "current",
   },
@@ -36,6 +30,20 @@ const steps = [
 ];
 
 export default function TxnProgress() {
+  const isToken1Approved = true;
+
+  useEffect(() => {
+    if (isToken1Approved && steps[0] && steps[1]) {
+      steps[0].status = "complete"
+      steps[1].status = "current"
+      // get final token quote & call data etc
+      // persist quote amount
+      // persist call data
+
+      // use quote for the minAmountFallback (front-runner defender logic for each provider)
+    }
+  }, [isToken1Approved]);
+
   return (
     <nav aria-label="Progress">
       <ol role="list" className="overflow-hidden">
