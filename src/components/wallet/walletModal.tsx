@@ -6,7 +6,7 @@ import { useAtom } from "jotai";
 import { WalletDetails } from "./walletDetails";
 import WalletSelect from "./walletSelect";
 
-import { allWalletModalAtoms as atoms } from "../../state/globalStore";
+import { allWalletModalAtoms as atoms } from "../../state/atoms";
 
 export default function WalletModal() {
   const { isConnected } = useAccount();

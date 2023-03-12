@@ -1,5 +1,5 @@
 import { FolderIcon, HomeIcon, UsersIcon } from "@heroicons/react/24/outline";
-import { classNames } from "../../utils/formatting";
+import { classNames } from "../../utils/helpers/formatting";
 
 const navigation = [
   { name: "Swap", icon: HomeIcon, href: "#", current: true },

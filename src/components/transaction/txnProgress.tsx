@@ -1,20 +1,21 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
-import { classNames } from "../../utils/formatting";
+import { useEffect } from "react";
+import { classNames } from "../../utils/helpers/formatting";
 
 const steps = [
   {
+    // Check token1 && token2 approvals simulataneously and every X seconds
     name: "Approve Token1",
     description: "Allow Contract1 to handle your Token1",
-    href: "#",
-    status: "complete",
-  },
-  {
-    name: "Approve Token2",
-    description: "Allow Contract1 to handle your Token2",
     href: "#",
     status: "current",
   },
   {
+    // After the previous 2 steps are complete:
+    // Call API to get updated quote inc call data for swap (one time)
+    // dont refresh every X seconds but supply manual refresh button for user
+    // receive call data and final quote for user to confirm
+    // optionally we can also dry-run the call to get an accurate gas estimate
     name: "Confirm Rate",
     description: "Confirm the estimated Token3 amount you will receive",
     href: "#",
@@ -29,6 +30,20 @@ const steps = [
 ];
 
 export default function TxnProgress() {
+  const isToken1Approved = true;
+
+  useEffect(() => {
+    if (isToken1Approved && steps[0] && steps[1]) {
+      steps[0].status = "complete"
+      steps[1].status = "current"
+      // get final token quote & call data etc
+      // persist quote amount
+      // persist call data
+
+      // use quote for the minAmountFallback (front-runner defender logic for each provider)
+    }
+  }, [isToken1Approved]);
+
   return (
     <nav aria-label="Progress">
       <ol role="list" className="overflow-hidden">

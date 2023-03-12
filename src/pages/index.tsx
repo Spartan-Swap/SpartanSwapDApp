@@ -1,5 +1,3 @@
-import type { NextPage } from "next";
-import { useEffect } from "react";
 import AssetSelect from "../components/assetSelect";
 import PageHeading from "../components/pageHeading";
 import {
@@ -9,29 +7,35 @@ import {
   XCircleIcon,
 } from "@heroicons/react/20/solid";
 import {
+  classNames,
   convertFromWei,
   formatFromWei,
   shortenString,
-} from "../utils/formatting";
-import { useAccount, useBalance } from "wagmi";
+} from "../utils/helpers/formatting";
+import { useAccount, useBalance, useProvider } from "wagmi";
 import { useAtom } from "jotai";
 import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
 import SwapRatesTable from "../components/swap/swapRatesTable";
-import { CoinGeckoLogoTemp } from "../utils/swapSources";
+import { CoinGeckoLogoTemp } from "../utils/const/swapSources";
 import AssetSelectButton from "../components/swap/assetSelectButton";
 import TxnModal from "../components/transaction/txnModal";
-import { allSwapAtoms as atoms } from "../state/globalStore";
+import { allSwapAtoms as atoms } from "../state/atoms";
+import { address0 } from "../utils/const/addresses";
+import { useAppDispatch } from "../utils/hooks";
+import { getSourceOutputs, updateSwapInput, useSwap } from "../state/swapStore";
 
-export type AssetIdProps = 1 | 2;
+import type { NextPage } from "next";
 
 const button1 = { label: "GitHub?", link: "./" };
 const button2 = { label: "Docs?", link: "./" };
 
 const Swap: NextPage = () => {
   const { address } = useAccount();
-  // const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
+  const { asset1, asset2, sourcesLoading, selectedSource } = useSwap();
+  const dispatch = useAppDispatch();
+  const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
   // --- GLOBAL STATE ---
   // Simple types
@@ -41,40 +45,25 @@ const Swap: NextPage = () => {
     atoms.assetSelectOpenAtom
   );
   const [, setAssetId] = useAtom(atoms.assetIdAtom);
-  const [selectedSource] = useAtom(atoms.selectedSourceAtom);
-  const [, setInputAmount] = useAtom(atoms.inputAmountAtom);
-  const [outputAmount, setOutputAmount] = useAtom(atoms.outputAmountAtom);
-  // Arrays - candidates for splitAtom(peopleAtom)
-  const [allSources] = useAtom(atoms.allSourcesAtom);
-  // Objects - candidates for focusAtom(dataAtom, (optic) => optic.prop('people'))
-  const [selectedAsset1] = useAtom(atoms.selectedAsset1Atom);
-  const [selectedAsset2] = useAtom(atoms.selectedAsset2Atom);
 
   const assetBalance1 = useBalance({
     address: address,
-    token: selectedAsset1.address,
+    token: asset1.address !== address0 ? asset1.address : undefined,
   });
   const assetBalance2 = useBalance({
     address: address,
-    token: selectedAsset2.address,
+    token: asset2.address !== address0 ? asset2.address : undefined,
   });
 
-  const toggleAssetSelectOpen = (assetId: AssetIdProps) => {
+  const toggleAssetSelectOpen = (assetId: number) => {
     setAssetId(assetId);
     setassetSelectOpen(true);
   };
 
-  useEffect(() => {
-    const _item = allSources.find((x) => x.id === selectedSource);
-    if (_item) {
-      setOutputAmount(_item.outputAmount);
-    }
-  }, [selectedSource, allSources]);
-
   const setInput = (units: string) => {
     const el = document.getElementById("inputUnits1") as HTMLInputElement;
     if (el) {
-      setInputAmount(units);
+      dispatch(updateSwapInput(units));
       el.value = units;
       el.focus();
     }
@@ -123,15 +112,15 @@ const Swap: NextPage = () => {
               <AssetSelectButton
                 handleToggleOpen={toggleAssetSelectOpen}
                 assetNumber={1}
-                assetLogo={selectedAsset1.logo}
-                assetTicker={selectedAsset1.ticker}
+                assetLogo={asset1.logo}
+                assetTicker={asset1.ticker}
               />
               <div className="w-max justify-self-end py-2">
                 <input
                   placeholder="0"
                   className="text-right"
                   id="inputUnits1"
-                  onChange={(e) => setInputAmount(e.target.value)}
+                  onChange={(e) => dispatch(updateSwapInput(e.target.value))}
                 />
                 <XCircleIcon
                   className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
@@ -141,7 +130,7 @@ const Swap: NextPage = () => {
                 />
               </div>
               <div className="w-max">
-                {shortenString(selectedAsset1.address)}
+                {shortenString(asset1.address)}
                 <span>
                   <DocumentDuplicateIcon
                     className="ml-1 inline h-4 w-4 text-gray-700"
@@ -158,7 +147,7 @@ const Swap: NextPage = () => {
                 </span>
               </div>
               <div className="w-max justify-self-end">
-                ~$0.00{" "}
+                ~$?{" "}
                 <div className="inline-block h-4 w-4 align-middle">
                   <CoinGeckoLogoTemp />
                 </div>
@@ -187,26 +176,29 @@ const Swap: NextPage = () => {
               <AssetSelectButton
                 handleToggleOpen={toggleAssetSelectOpen}
                 assetNumber={2}
-                assetLogo={selectedAsset2.logo}
-                assetTicker={selectedAsset2.ticker}
+                assetLogo={asset2.logo}
+                assetTicker={asset2.ticker}
               />
               <div className="w-max justify-self-end py-2">
                 <input
                   placeholder="Sell Units"
                   className="text-right"
                   id="inputUnits2"
-                  value={convertFromWei(outputAmount)}
+                  value={convertFromWei(selectedSource.outputAmount)}
                   disabled
                 />
                 <ArrowPathIcon
-                  className="ml-1 mb-1 inline h-5 w-5 text-gray-700"
+                  className={classNames(
+                    "ml-1 mb-1 inline h-5 w-5 text-gray-700",
+                    sourcesLoading ? "animate-spin" : ""
+                  )}
                   aria-hidden="true"
                   role="button"
-                  // onClick={() => onInputChange(inputAmount)} // TODO: TRIGGER RELOAD OF ALL PROVIDERS ON CLICK
+                  onClick={() => dispatch(getSourceOutputs(provider))}
                 />
               </div>
               <div className="w-max">
-                {shortenString(selectedAsset2.address)}
+                {shortenString(asset2.address)}
                 <span>
                   <DocumentDuplicateIcon
                     className="ml-1 inline h-4 w-4 text-gray-700"
@@ -223,7 +215,7 @@ const Swap: NextPage = () => {
                 </span>
               </div>
               <div className="w-max justify-self-end">
-                ~$0.00{" "}
+                ~$?{" "}
                 <div className="inline-block h-4 w-4 align-middle">
                   <CoinGeckoLogoTemp />
                 </div>

@@ -4,6 +4,14 @@ export const BN = (value: string | number) => new BigNumber(value);
 export const one = BN("1000000000000000000");
 
 /**
+ * Shift to units string from gwei string without formatting
+ */
+export const convertFromGwei = (units: string): string => {
+  const weiString = BN(units).shiftedBy(-9).toFixed(9);
+  return weiString;
+};
+
+/**
  * Shift to units string from wei string without formatting
  */
 export const convertFromWei = (units: string): string => {
@@ -23,6 +31,33 @@ export const convertToWei = (units: string): string => {
 export const formatFromWei = (weiString: string, decs = 4): string => {
   let decimals = decs;
   let units = BN(weiString).shiftedBy(-18);
+  const isNeg = units.isLessThan(0); // Check if we are dealing with a negative number
+  units = units.absoluteValue(); // Make sure we only apply rounding logic to a non-negative number
+  if (units.isLessThan(0.1) && decimals < 3) {
+    decimals = 3;
+  }
+  if (units.isLessThan(0.01) && decimals < 4) {
+    decimals = 4;
+  }
+  if (units.isLessThan(0.001) && decimals < 5) {
+    decimals = 5;
+  }
+  if (units.isLessThan(0.0001) && decimals < 6) {
+    decimals = 6;
+  }
+  if (units.isLessThanOrEqualTo(0)) {
+    decimals = 2;
+  }
+  if (isNeg) {
+    units = units.times(-1); // Re-apply the negative value (if applicable) before handing back
+  }
+  return units.toFormat(decimals);
+};
+
+/** Shift Gwei string to units. Format using globalFormatting */
+export const formatFromGwei = (gweiString: string, decs = 4): string => {
+  let decimals = decs;
+  let units = BN(gweiString).shiftedBy(-9);
   const isNeg = units.isLessThan(0); // Check if we are dealing with a negative number
   units = units.absoluteValue(); // Make sure we only apply rounding logic to a non-negative number
   if (units.isLessThan(0.1) && decimals < 3) {

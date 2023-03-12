@@ -5,7 +5,10 @@ import { WagmiConfig } from "wagmi";
 import { wagmiClient } from "../components/wallet/client";
 import { useEffect, useState } from "react";
 import BigNumber from "bignumber.js";
-import { Provider } from "jotai";
+import { store } from "../state/store";
+import { Provider as ReduxProvider } from "react-redux";
+
+import { Provider as JotaiProvider } from "jotai";
 
 const globalFormat = {
   prefix: "",
@@ -31,13 +34,15 @@ export default function MyApp({ Component, pageProps }: AppProps) {
     return <div>Loading...</div>;
   } else {
     return (
-      <Provider>
-        <WagmiConfig client={wagmiClient}>
-          <Layout>
-            <Component {...pageProps} />
-          </Layout>
-        </WagmiConfig>
-      </Provider>
+      <ReduxProvider store={store}>
+        <JotaiProvider>
+          <WagmiConfig client={wagmiClient}>
+            <Layout>
+              <Component {...pageProps} />
+            </Layout>
+          </WagmiConfig>
+        </JotaiProvider>
+      </ReduxProvider>
     );
   }
 }

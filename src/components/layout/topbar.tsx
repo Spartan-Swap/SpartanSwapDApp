@@ -1,7 +1,7 @@
 import { Bars3Icon, BellIcon, WalletIcon } from "@heroicons/react/24/outline";
 import { useAtom } from "jotai";
 
-import { allTopbarAtoms as atoms } from "../../state/globalStore";
+import { allTopbarAtoms as atoms } from "../../state/atoms";
 
 export default function Topbar() {
   const [, setSidebarOpen] = useAtom(atoms.sidebarOpenAtom);

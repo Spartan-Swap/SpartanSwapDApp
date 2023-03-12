@@ -1,15 +1,13 @@
 import Image from "next/image";
 
-import type { AssetIdProps } from "../../pages";
-
 export default function AssetSelectButton({
   handleToggleOpen,
   assetNumber,
   assetLogo,
   assetTicker,
 }: {
-  handleToggleOpen: (value: AssetIdProps) => void;
-  assetNumber: AssetIdProps;
+  handleToggleOpen: (value: number) => void;
+  assetNumber: number;
   assetLogo: string;
   assetTicker: string;
 }) {

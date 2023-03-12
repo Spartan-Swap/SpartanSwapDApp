@@ -7,7 +7,7 @@ import { walletList } from "./client";
 import { useConnect } from "wagmi";
 
 import type { WalletProps } from "./client";
-import { classNames } from "../../utils/formatting";
+import { classNames } from "../../utils/helpers/formatting";
 import Image from "next/image";
 
 // TODO: Make this use-able on mobile (show inline 'connect' button on mobile but make sure active state is handled correctly)

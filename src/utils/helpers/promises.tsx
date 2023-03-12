@@ -1,4 +1,4 @@
-export const withTimeout = (millis: number, promise: Promise<Response>) => {
+export const withTimeout = (millis: number, promise: Promise<any> | undefined) => {
   const timeout = new Promise((resolve, reject) => {
     setTimeout(
       () => reject(new Error(`Timed out after ${millis} ms.`)),
