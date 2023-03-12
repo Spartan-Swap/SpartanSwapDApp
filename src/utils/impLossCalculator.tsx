@@ -3,7 +3,7 @@
 // TODO: Embed this component in a page of its own (maybe 'tools'?)
 
 import type BigNumber from "bignumber.js";
-import { BN } from "./formatting";
+import { BN } from "./helpers/formatting";
 
 // TODO: Link to this component onClick on the 'Liquidity' page so users can assess the pool they are choosing based on a simulated price movement they might expect...
 // could take this a step further and pull up a table with all pools available with the same selected pair (ie. user selects 'IL Calculator' when in the SPv2 BUSD:SPARTA...

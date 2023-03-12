@@ -12,6 +12,7 @@
     "@headlessui/react": "^1.7.5",
     "@heroicons/react": "^2.0.13",
     "@pancakeswap/sdk": "^3.1.4",
+    "@reduxjs/toolkit": "^1.9.3",
     "bignumber.js": "^9.1.1",
     "ethers": "^5.7.2",
     "jotai": "^2.0.0",
@@ -19,6 +20,7 @@
     "next": "13.0.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
+    "react-redux": "^8.0.5",
     "wagmi": "^0.9.4",
     "zod": "^3.18.0"
   },
@@ -26,6 +28,7 @@
     "@types/node": "^18.0.0",
     "@types/react": "^18.0.14",
     "@types/react-dom": "^18.0.5",
+    "@types/react-redux": "^7.1.25",
     "@typescript-eslint/eslint-plugin": "^5.33.0",
     "@typescript-eslint/parser": "^5.33.0",
     "autoprefixer": "^10.4.7",

@@ -4,7 +4,7 @@ import { Dialog, Transition } from "@headlessui/react";
 
 import TxnProgress from "./txnProgress";
 
-import { allSwapTxnModalAtoms as atoms } from "../../state/globalStore";
+import { allSwapTxnModalAtoms as atoms } from "../../state/atoms";
 
 export default function TxnModal() {
   const [swapTxnOpen, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);

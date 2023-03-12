@@ -1,6 +1,6 @@
 import { CheckIcon } from "@heroicons/react/20/solid";
 import { useEffect } from "react";
-import { classNames } from "../../utils/formatting";
+import { classNames } from "../../utils/helpers/formatting";
 
 const steps = [
   {

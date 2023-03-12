@@ -1,10 +1,39 @@
-import { useAtom } from "jotai";
+import { useEffect, useState } from "react";
+import { useProvider } from "wagmi";
+import { useAppDispatch } from "../../utils/hooks";
 
+import { getSourceOutputs, useSwap } from "../../state/swapStore";
+import { sortDescBN } from "../../utils/helpers/sorting";
 import SwapRatesTableItem from "./swapRatesTableItem";
-import { allSwapRatesTableAtoms as atoms } from "../../state/globalStore";
 
 export default function SwapRatesTable() {
-  const [allSourcesSplit] = useAtom(atoms.allSourcesAtomSplit);
+  const { sources, input, asset1, asset2 } = useSwap();
+  const dispatch = useAppDispatch();
+  const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
+  
+  const [sourcesSorted, setsourcesSorted] = useState(sources);
+
+  /** Make local copy of sources and sort/filter them */
+  useEffect(() => {
+    setsourcesSorted(
+      [...sources].sort((a, b) => sortDescBN(a.outputAmount, b.outputAmount))
+    );
+  }, [sources]);
+
+  /** Get the rates from sources every X seconds or on dep changes */
+  useEffect(() => {
+    const debounceDelay = 500; // Avoid excessive calls from dep-changes (ie. typing fast)
+    const intervalDelay = 10000; // Fallback to refresh rates every 10s if no deps change
+    const checkRates = () => {
+      dispatch(getSourceOutputs(provider));
+    };
+    const timeOutId = setTimeout(() => checkRates(), debounceDelay);
+    const interval = setInterval(() => checkRates(), intervalDelay);
+    return () => {
+      clearTimeout(timeOutId);
+      clearInterval(interval);
+    };
+  }, [dispatch, provider, input, asset1, asset2]);
 
   return (
     <div className="px-2 sm:px-4 lg:px-6">
@@ -37,10 +66,10 @@ export default function SwapRatesTable() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
-                  {allSourcesSplit.map((swapSource) => (
+                  {sourcesSorted.map((swapSource) => (
                     <SwapRatesTableItem
                       swapSourceItem={swapSource}
-                      key={swapSource.toString()}
+                      key={swapSource.id}
                     />
                   ))}
                 </tbody>

@@ -4,7 +4,7 @@ import Topbar from "./topbar";
 import Sidebar from "./sidebar";
 import WalletModal from "../wallet/walletModal";
 
-import { allLayoutAtoms as atoms } from "../../state/globalStore";
+import { allLayoutAtoms as atoms } from "../../state/atoms";
 
 type LayoutProps = {
   children: React.ReactNode;

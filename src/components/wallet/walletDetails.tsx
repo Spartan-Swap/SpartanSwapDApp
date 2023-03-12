@@ -9,11 +9,11 @@ import {
 } from "@heroicons/react/20/solid";
 
 import { useState } from "react";
-import { assets } from "../assetSelect";
-
-import type { AssetProps } from "../assetSelect";
-import { classNames, shortenString } from "../../utils/formatting";
+import { classNames, shortenString } from "../../utils/helpers/formatting";
 import Image from "next/image";
+import { assets } from "../../utils/const/assets";
+
+import type { AssetProps } from "../../utils/const/assets";
 
 const recent = [assets[1], assets[3], assets[2]];
 

@@ -2,20 +2,26 @@ import { useState } from "react";
 import { useAtom } from "jotai";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/20/solid";
 
-import { BN, classNames, convertFromGwei, formatFromGwei, formatFromWei } from "../../utils/formatting";
-import { allSwapSidePanelAtoms as atoms } from "../../state/globalStore";
+import {
+  BN,
+  classNames,
+  convertFromGwei,
+  formatFromGwei,
+  formatFromWei,
+} from "../../utils/helpers/formatting";
+import { allSwapSidePanelAtoms as atoms } from "../../state/atoms";
 
-import { gasDefault } from "../../utils/const";
+import { gasDefault } from "../../utils/const/general";
+import { useSwap } from "../../state/swapStore";
 
 const tabs: string[] = ["Swap Details", "Price Chart"];
 
 export function SwapSidePanel() {
-  const [selectedTab, setSelectedTab] = useState(tabs[0]);
+  const { asset1, asset2, selectedSource } = useSwap();
 
-  const [selectedSource] = useAtom(atoms.selectedSourceAtom);
-  const [selectedAsset1] = useAtom(atoms.selectedAsset1Atom);
-  const [selectedAsset2] = useAtom(atoms.selectedAsset2Atom);
   const [, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
+
+  const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   const toggleSelectedTab = (newTab: string) => {
     setSelectedTab(tabs.find((tab) => tab === newTab));
@@ -71,7 +77,7 @@ export function SwapSidePanel() {
                 className="h-5 text-gray-700"
                 aria-hidden="true"
                 role="button"
-              // onClick={() => TODO: Open settings }
+                // onClick={() => TODO: Open settings }
               />
             </div>
           </nav>
@@ -84,15 +90,26 @@ export function SwapSidePanel() {
           </div>
           <div className="py-2" />
           <div className="">
-            Your {selectedSource.outputAmount} {selectedAsset1.ticker} will route via these
-            pools:
+            Your {selectedSource.outputAmount} {asset1.ticker} will route via
+            these pools:
           </div>
           <div className="">*Route Chart*</div>
           <div className="py-2" />
           <div className="">
-            Estimated receiving: {formatFromWei(selectedSource.outputAmount)} {selectedAsset2.ticker}
+            Estimated receiving: {formatFromWei(selectedSource.outputAmount ?? "0")}{" "}
+            {asset2.ticker}
           </div>
-          <div className="">Estimated gas cost: ~{formatFromGwei(BN(selectedSource.gasEstimate).times(convertFromGwei(gasDefault)).toString())} BNB</div>
+          <div className="">
+            Estimated gas cost: ~
+            {selectedSource.gasEstimate !== ""
+              ? formatFromGwei(
+                  BN(selectedSource.gasEstimate)
+                    .times(convertFromGwei(gasDefault))
+                    .toString()
+                )
+              : "Unknown"}{" "}
+            BNB
+          </div>
           <div className="py-2" />
           <div>
             <button
