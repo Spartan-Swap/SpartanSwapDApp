@@ -1,4 +1,4 @@
-import { CoinGeckoLogoTemp } from "../../utils/const/swapSources";
+import { CoinGeckoLogoTemp } from "../../utils/const/swapSources/swapSources";
 import {
   BN,
   classNames,
@@ -11,7 +11,7 @@ import { gasDefault } from "../../utils/const/general";
 import { changeSelectedSource, useSwap } from "../../state/swapStore";
 import { useAppDispatch } from "../../utils/hooks";
 
-import type { SwapSourceProps } from "../../utils/const/swapSources";
+import type { SwapSourceProps } from "../../utils/const/swapSources/swapSources";
 
 type SwapRatesTableItemProps = {
   swapSourceItem: SwapSourceProps;
@@ -30,7 +30,7 @@ export default function SwapRatesTableItem({
         role="button"
         className={
           selectedSource.id === swapSourceItem.id
-            ? "z-10 border-indigo-200 bg-indigo-50"
+            ? "z-10 border-indigo-200 bg-gradient-to-r from-gray-200 via-transparent"
             : ""
         }
       >

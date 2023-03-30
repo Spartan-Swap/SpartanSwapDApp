@@ -18,7 +18,7 @@ import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
 
 import SwapRatesTable from "../components/swap/swapRatesTable";
-import { CoinGeckoLogoTemp } from "../utils/const/swapSources";
+import { CoinGeckoLogoTemp } from "../utils/const/swapSources/swapSources";
 import AssetSelectButton from "../components/swap/assetSelectButton";
 import TxnModal from "../components/transaction/txnModal";
 import { allSwapAtoms as atoms } from "../state/atoms";

@@ -3,10 +3,10 @@ import { useSelector } from "react-redux";
 import { BN, convertToWei } from "../utils/helpers/formatting";
 import { withTimeout } from "../utils/helpers/promises";
 import {
-  getSwapSourceApi,
+  getSwapSourceQuote,
   oneInchSource,
   swapSources,
-} from "../utils/const/swapSources";
+} from "../utils/const/swapSources/swapSources";
 import {
   parseLocalStorage,
   setLocalStorage,
@@ -14,7 +14,7 @@ import {
 import { bnbAsset, spartaAsset } from "../utils/const/assets";
 
 import type { PayloadAction, ThunkDispatch } from "@reduxjs/toolkit";
-import type { SwapSourceProps } from "../utils/const/swapSources";
+import type { SwapSourceProps } from "../utils/const/swapSources/swapSources";
 import type { RootState } from "../state/store";
 import type { Provider } from "@wagmi/core";
 import type { AssetProps } from "../utils/const/assets";
@@ -95,7 +95,7 @@ export const getSourceOutputs =
             awaitArray.push(
               withTimeout(
                 3000,
-                getSwapSourceApi(sources[i]!.id, false, [
+                getSwapSourceQuote(sources[i]!.id, false, [
                   asset1,
                   asset2,
                   weiInput,
