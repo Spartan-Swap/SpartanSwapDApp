@@ -92,8 +92,8 @@ export const zeroExSource: SwapSourceProps = {
   imagesq: "https://cryptologos.cc/logos/0x-zrx-logo.svg",
   imagelg: "https://cryptologos.cc/logos/0x-zrx-logo.svg",
   integrated: false,
-  outputAmount: "0",
-  gasEstimate: "",
+  outputWei: "0",
+  gasEstGwei: "",
   loading: false,
   error: "",
 };

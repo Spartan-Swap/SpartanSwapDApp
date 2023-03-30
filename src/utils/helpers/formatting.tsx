@@ -6,24 +6,32 @@ export const one = BN("1000000000000000000");
 /**
  * Shift to units string from gwei string without formatting
  */
-export const convertFromGwei = (units: string): string => {
-  const weiString = BN(units).shiftedBy(-9).toFixed(9);
-  return weiString;
+export const convertFromGwei = (gweiString: string): string => {
+  const unitsString = BN(gweiString).shiftedBy(-9).toFixed(9);
+  return unitsString;
 };
 
 /**
  * Shift to units string from wei string without formatting
  */
-export const convertFromWei = (units: string): string => {
-  const weiString = BN(units).shiftedBy(-18).toFixed(18);
-  return weiString;
+export const convertFromWei = (weiString: string): string => {
+  const unitsString = BN(weiString).shiftedBy(-18).toFixed(18);
+  return unitsString;
 };
 
 /**
  * Shift units string to wei string
  */
-export const convertToWei = (units: string): string => {
-  const weiString = BN(units).shiftedBy(18).toFixed(0);
+export const convertToWei = (unitsString: string): string => {
+  const weiString = BN(unitsString).shiftedBy(18).toFixed(0);
+  return weiString;
+};
+
+/**
+ * Shift gwei string to wei string
+ */
+export const convertGweiToWei = (gweiString: string): string => {
+  const weiString = BN(gweiString).shiftedBy(9).toFixed(0);
   return weiString;
 };
 
