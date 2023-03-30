@@ -1,8 +1,8 @@
-import { CoinGeckoLogoTemp } from "../../utils/const/swapSources";
 import {
   BN,
   classNames,
   convertFromGwei,
+  convertGweiToWei,
   formatFromGwei,
   formatFromWei,
 } from "../../utils/helpers/formatting";
@@ -10,8 +10,9 @@ import { ArrowPathIcon } from "@heroicons/react/20/solid";
 import { gasDefault } from "../../utils/const/general";
 import { changeSelectedSource, useSwap } from "../../state/swapStore";
 import { useAppDispatch } from "../../utils/hooks";
-
-import type { SwapSourceProps } from "../../utils/const/swapSources";
+import { CoinGeckoLogoTemp } from "../../img/tempLogos";
+import type { SwapSourceProps } from "../../utils/const/swapSources/swapSources";
+import { returnUsdValAsset } from "../../utils/helpers/valueReturns";
 
 type SwapRatesTableItemProps = {
   swapSourceItem: SwapSourceProps;
@@ -21,7 +22,13 @@ export default function SwapRatesTableItem({
   swapSourceItem,
 }: SwapRatesTableItemProps) {
   const dispatch = useAppDispatch();
-  const { asset2, sourcesLoading, selectedSource } = useSwap();
+  const {
+    asset2,
+    sourcesLoading,
+    selectedSource,
+    cgPriceAsset2,
+    cgPriceGasAsset,
+  } = useSwap();
 
   return (
     <>
@@ -30,14 +37,14 @@ export default function SwapRatesTableItem({
         role="button"
         className={
           selectedSource.id === swapSourceItem.id
-            ? "z-10 border-indigo-200 bg-indigo-50"
+            ? "z-10 border-indigo-200 bg-gradient-to-r from-gray-200 via-transparent"
             : ""
         }
       >
         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
           {!swapSourceItem.error ? (
             <div className="text-gray-900">
-              {formatFromWei(swapSourceItem.outputAmount)}
+              {formatFromWei(swapSourceItem.outputWei)}
               <div className="ml-1 inline text-xs text-gray-500">
                 {asset2.ticker}
               </div>
@@ -46,7 +53,8 @@ export default function SwapRatesTableItem({
             <div className="text-gray-900">{swapSourceItem.error}</div>
           )}
           <div className="text-xs text-gray-500">
-            ~$?
+            ~$
+            {returnUsdValAsset(swapSourceItem.outputWei, cgPriceAsset2)}
             <div className="ml-1 inline-block h-4 w-4 align-top">
               <CoinGeckoLogoTemp />
             </div>
@@ -54,20 +62,24 @@ export default function SwapRatesTableItem({
         </td>
         <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
           <div className="text-gray-900">
-            {swapSourceItem.gasEstimate !== ""
+            {swapSourceItem.gasEstGwei !== ""
               ? formatFromGwei(
                   BN(convertFromGwei(gasDefault))
-                    .times(swapSourceItem.gasEstimate)
+                    .times(swapSourceItem.gasEstGwei)
                     .toString()
                 )
               : ""}
             <div className="ml-1 inline text-xs text-gray-500">
               {/* IF CHAIN === 56 etc */}
-              {swapSourceItem.gasEstimate !== "" ? "BNB" : "Unknown"}
+              {swapSourceItem.gasEstGwei !== "" ? "BNB" : "Unknown"}
             </div>
           </div>
           <div className="text-xs text-gray-500">
-            ~${swapSourceItem.gasEstimate !== "" ? "?" : "?"}
+            ~$
+            {returnUsdValAsset(
+              convertGweiToWei(swapSourceItem.gasEstGwei),
+              cgPriceGasAsset
+            )}
             <div className="ml-1 inline-block h-4 w-4 align-top">
               <CoinGeckoLogoTemp />
             </div>

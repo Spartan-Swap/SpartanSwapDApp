@@ -1,44 +1,62 @@
-import AssetSelect from "../components/assetSelect";
-import PageHeading from "../components/pageHeading";
+import { useEffect } from "react";
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
   DocumentDuplicateIcon,
   XCircleIcon,
+  ArrowsUpDownIcon,
 } from "@heroicons/react/20/solid";
 import {
   classNames,
   convertFromWei,
+  convertToWei,
   formatFromWei,
   shortenString,
 } from "../utils/helpers/formatting";
 import { useAccount, useBalance, useProvider } from "wagmi";
 import { useAtom } from "jotai";
-import PageWrap from "../components/layout/pageWrap";
 import { SwapSidePanel } from "../components/swap/swapSidePanel";
-
-import SwapRatesTable from "../components/swap/swapRatesTable";
-import { CoinGeckoLogoTemp } from "../utils/const/swapSources";
-import AssetSelectButton from "../components/swap/assetSelectButton";
-import TxnModal from "../components/transaction/txnModal";
 import { allSwapAtoms as atoms } from "../state/atoms";
 import { address0 } from "../utils/const/addresses";
 import { useAppDispatch } from "../utils/hooks";
-import { getSourceOutputs, updateSwapInput, useSwap } from "../state/swapStore";
+import {
+  changeCgAssetPrice,
+  getSourceOutputs,
+  resetSwapOutputs,
+  updateSwapAsset1,
+  updateSwapAsset2,
+  updateSwapInput,
+  useSwap,
+} from "../state/swapStore";
+import { CoinGeckoLogoTemp } from "../img/tempLogos";
+import PageWrap from "../components/layout/pageWrap";
+import SwapRatesTable from "../components/swap/swapRatesTable";
+import AssetSelectButton from "../components/swap/assetSelectButton";
+import TxnModal from "../components/transaction/txnModal";
+import AssetSelect from "../components/assetSelect";
+import PageHeading from "../components/pageHeading";
 
 import type { NextPage } from "next";
+import { returnUsdValAsset } from "../utils/helpers/valueReturns";
 
 const button1 = { label: "GitHub?", link: "./" };
 const button2 = { label: "Docs?", link: "./" };
 
 const Swap: NextPage = () => {
   const { address } = useAccount();
-  const { asset1, asset2, sourcesLoading, selectedSource } = useSwap();
+  const {
+    asset1,
+    asset2,
+    sourcesLoading,
+    selectedSource,
+    cgPriceAsset1,
+    cgPriceAsset2,
+    inputUnits,
+  } = useSwap();
   const dispatch = useAppDispatch();
   const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
-  // --- GLOBAL STATE ---
-  // Simple types
+  // Global States
   const [, setWalletOpen] = useAtom(atoms.walletOpenAtom);
   const [swapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
   const [assetSelectOpen, setassetSelectOpen] = useAtom(
@@ -60,6 +78,13 @@ const Swap: NextPage = () => {
     setassetSelectOpen(true);
   };
 
+  const toggleFlipSelectedAssets = () => {
+    const _prevAsset1 = asset1;
+    dispatch(resetSwapOutputs());
+    dispatch(updateSwapAsset1(asset2));
+    dispatch(updateSwapAsset2(_prevAsset1));
+  };
+
   const setInput = (units: string) => {
     const el = document.getElementById("inputUnits1") as HTMLInputElement;
     if (el) {
@@ -68,6 +93,19 @@ const Swap: NextPage = () => {
       el.focus();
     }
   };
+
+  /** Get the coingecko rates every X seconds or on dep changes */
+  useEffect(() => {
+    const intervalDelay = 15000; // Fallback to refresh rates every X secs if no deps change
+    const checkRates = () => {
+      dispatch(changeCgAssetPrice());
+    };
+    const interval = setInterval(() => checkRates(), intervalDelay);
+    checkRates(); // On load
+    return () => {
+      clearInterval(interval);
+    };
+  }, [dispatch, asset1.address, asset2.address]);
 
   return (
     <>
@@ -147,11 +185,20 @@ const Swap: NextPage = () => {
                 </span>
               </div>
               <div className="w-max justify-self-end">
-                ~$?{" "}
-                <div className="inline-block h-4 w-4 align-middle">
+                ~$
+                {returnUsdValAsset(convertToWei(inputUnits), cgPriceAsset1)}
+                <div className="ml-1 inline-block h-4 w-4 align-middle">
                   <CoinGeckoLogoTemp />
                 </div>
               </div>
+            </div>
+            <div className="w-100 text-center">
+              <ArrowsUpDownIcon
+                className="inline h-5 w-5 text-gray-700"
+                aria-hidden="true"
+                role="button"
+                onClick={() => toggleFlipSelectedAssets()}
+              />
             </div>
             <div id="assetSection2" className="grid grid-cols-2 p-3">
               <div className="w-max">Buy:</div>
@@ -184,7 +231,7 @@ const Swap: NextPage = () => {
                   placeholder="Sell Units"
                   className="text-right"
                   id="inputUnits2"
-                  value={convertFromWei(selectedSource.outputAmount)}
+                  value={convertFromWei(selectedSource.outputWei)}
                   disabled
                 />
                 <ArrowPathIcon
@@ -215,8 +262,9 @@ const Swap: NextPage = () => {
                 </span>
               </div>
               <div className="w-max justify-self-end">
-                ~$?{" "}
-                <div className="inline-block h-4 w-4 align-middle">
+                ~$
+                {returnUsdValAsset(selectedSource.outputWei, cgPriceAsset2)}
+                <div className="ml-1 inline-block h-4 w-4 align-middle">
                   <CoinGeckoLogoTemp />
                 </div>
               </div>

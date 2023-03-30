@@ -13,6 +13,7 @@ import { ChevronRightIcon } from "@heroicons/react/20/solid";
 import { classNames, shortenString } from "../utils/helpers/formatting";
 import { allAssetSelectAtoms as atoms } from "../state/atoms";
 import {
+  resetSwapOutputs,
   updateSwapAsset1,
   updateSwapAsset2,
   useSwap,
@@ -42,6 +43,7 @@ export default function AssetSelect() {
   };
 
   const getSetSelectedAsset = (assetNumber: AssetProps) => {
+    dispatch(resetSwapOutputs());
     if (assetId === 1) {
       dispatch(updateSwapAsset1(assetNumber));
       return;

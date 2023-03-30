@@ -90,20 +90,20 @@ export function SwapSidePanel() {
           </div>
           <div className="py-2" />
           <div className="">
-            Your {selectedSource.outputAmount} {asset1.ticker} will route via
+            Your {selectedSource.outputWei} {asset1.ticker} will route via
             these pools:
           </div>
           <div className="">*Route Chart*</div>
           <div className="py-2" />
           <div className="">
-            Estimated receiving: {formatFromWei(selectedSource.outputAmount ?? "0")}{" "}
+            Estimated receiving: {formatFromWei(selectedSource.outputWei ?? "0")}{" "}
             {asset2.ticker}
           </div>
           <div className="">
             Estimated gas cost: ~
-            {selectedSource.gasEstimate !== ""
+            {selectedSource.gasEstGwei !== ""
               ? formatFromGwei(
-                  BN(selectedSource.gasEstimate)
+                  BN(selectedSource.gasEstGwei)
                     .times(convertFromGwei(gasDefault))
                     .toString()
                 )

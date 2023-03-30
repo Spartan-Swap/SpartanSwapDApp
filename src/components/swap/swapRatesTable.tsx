@@ -5,20 +5,45 @@ import { useAppDispatch } from "../../utils/hooks";
 import { getSourceOutputs, useSwap } from "../../state/swapStore";
 import { sortDescBN } from "../../utils/helpers/sorting";
 import SwapRatesTableItem from "./swapRatesTableItem";
+import { BN, convertGweiToWei } from "../../utils/helpers/formatting";
 
 export default function SwapRatesTable() {
-  const { sources, input, asset1, asset2 } = useSwap();
+  const {
+    sources,
+    inputUnits,
+    asset1,
+    asset2,
+    cgPriceAsset2,
+    cgPriceGasAsset,
+  } = useSwap();
   const dispatch = useAppDispatch();
   const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
-  
+
   const [sourcesSorted, setsourcesSorted] = useState(sources);
 
   /** Make local copy of sources and sort/filter them */
   useEffect(() => {
     setsourcesSorted(
-      [...sources].sort((a, b) => sortDescBN(a.outputAmount, b.outputAmount))
+      [...sources].sort((a, b) => {
+        let _totalA = a.outputWei;
+        let _totalB = b.outputWei;
+        if (
+          BN(cgPriceAsset2).isGreaterThan("0") &&
+          BN(cgPriceGasAsset).isGreaterThan("0")
+        ) {
+          _totalA = BN(_totalA)
+            .times(cgPriceAsset2)
+            .minus(BN(convertGweiToWei(a.gasEstGwei)).times(cgPriceGasAsset))
+            .toString();
+          _totalB = BN(_totalB)
+            .times(cgPriceAsset2)
+            .minus(BN(convertGweiToWei(b.gasEstGwei)).times(cgPriceGasAsset))
+            .toString();
+        }
+        return sortDescBN(_totalA, _totalB);
+      })
     );
-  }, [sources]);
+  }, [sources, cgPriceAsset2, cgPriceGasAsset]);
 
   /** Get the rates from sources every X seconds or on dep changes */
   useEffect(() => {
@@ -33,7 +58,7 @@ export default function SwapRatesTable() {
       clearTimeout(timeOutId);
       clearInterval(interval);
     };
-  }, [dispatch, provider, input, asset1, asset2]);
+  }, [dispatch, provider, inputUnits, asset1, asset2]);
 
   return (
     <div className="px-2 sm:px-4 lg:px-6">

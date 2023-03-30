@@ -21,7 +21,19 @@ export const bnbAsset: AssetProps = {
   logo: "https://bscscan.com/token/images/binance_32.png",
   peg: "",
   type: "Native Coin",
-  balance: "0"
+  balance: "0",
+};
+
+export const wbnbAsset: AssetProps = {
+  name: "Wrapped BNB",
+  ticker: "WBNB",
+  address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
+  site: "https://www.binance.org/",
+  decimals: 18,
+  logo: "https://bscscan.com/token/images/binance_32.png",
+  peg: "BNB",
+  type: "Token",
+  balance: "0",
 };
 
 export const spartaAsset: AssetProps = {
@@ -33,23 +45,13 @@ export const spartaAsset: AssetProps = {
   logo: "https://bscscan.com/token/images/spartan2_32.png",
   peg: "",
   type: "Token",
-  balance: "0"
+  balance: "0",
 };
 
 export const assets: AssetProps[] = [
   bnbAsset,
   spartaAsset,
-  {
-    name: "Wrapped BNB",
-    ticker: "WBNB",
-    address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c",
-    site: "https://www.binance.org/",
-    decimals: 18,
-    logo: "https://bscscan.com/token/images/binance_32.png",
-    peg: "BNB",
-    type: "Token",
-    balance: "0"
-  },
+  wbnbAsset,
   {
     name: "Trust Wallet Token",
     ticker: "TWT",
@@ -59,7 +61,7 @@ export const assets: AssetProps[] = [
     logo: "https://bscscan.com/token/images/trust_32.png",
     peg: "",
     type: "Token",
-    balance: "0"
+    balance: "0",
   },
   {
     name: "Binance-Peg BUSD Token",
@@ -70,7 +72,7 @@ export const assets: AssetProps[] = [
     logo: "https://bscscan.com/token/images/busd_32_2.png",
     peg: "USD",
     type: "Token",
-    balance: "0"
+    balance: "0",
   },
   {
     name: "Binance-Peg USD Coin",
@@ -81,7 +83,7 @@ export const assets: AssetProps[] = [
     logo: "https://bscscan.com/token/images/centre-usdc_28.png",
     peg: "USD",
     type: "Token",
-    balance: "0"
+    balance: "0",
   },
   {
     name: "Binance-Peg BSC-USD",
@@ -92,7 +94,7 @@ export const assets: AssetProps[] = [
     logo: "https://bscscan.com/token/images/busdt_32.png",
     peg: "USD",
     type: "Token",
-    balance: "0"
+    balance: "0",
   },
   {
     name: "Binance-Peg BTCB Token",
@@ -103,7 +105,7 @@ export const assets: AssetProps[] = [
     logo: "https://bscscan.com/token/images/btcb_32.png",
     peg: "BTC",
     type: "Token",
-    balance: "0"
+    balance: "0",
   },
   {
     name: "Raven Protocol",
@@ -114,9 +116,15 @@ export const assets: AssetProps[] = [
     logo: "https://bscscan.com/token/images/raven_32.png",
     peg: "",
     type: "Token",
-    balance: "0"
+    balance: "0",
   },
   // More assets...
 ];
 
-export const recentAssetsPlaceholder = [assets[6], assets[4], assets[2], assets[0], assets[3]];
+export const recentAssetsPlaceholder = [
+  assets[6],
+  assets[4],
+  assets[2],
+  assets[0],
+  assets[3],
+];
