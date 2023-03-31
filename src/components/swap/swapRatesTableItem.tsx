@@ -3,16 +3,22 @@ import {
   classNames,
   convertFromGwei,
   convertGweiToWei,
+  convertToWei,
   formatFromGwei,
   formatFromWei,
 } from "../../utils/helpers/formatting";
-import { ArrowPathIcon } from "@heroicons/react/20/solid";
+import {
+  ArrowPathIcon,
+  ShieldCheckIcon,
+  ShieldExclamationIcon,
+} from "@heroicons/react/20/solid";
 import { gasDefault } from "../../utils/const/general";
 import { changeSelectedSource, useSwap } from "../../state/swapStore";
 import { useAppDispatch } from "../../utils/hooks";
 import { CoinGeckoLogoTemp } from "../../img/tempLogos";
-import type { SwapSourceProps } from "../../utils/const/swapSources/swapSources";
 import { returnUsdValAsset } from "../../utils/helpers/valueReturns";
+
+import type { SwapSourceProps } from "../../utils/const/swapSources/swapSources";
 
 type SwapRatesTableItemProps = {
   swapSourceItem: SwapSourceProps;
@@ -28,6 +34,7 @@ export default function SwapRatesTableItem({
     selectedSource,
     cgPriceAsset2,
     cgPriceGasAsset,
+    inputUnits,
   } = useSwap();
 
   return (
@@ -110,11 +117,40 @@ export default function SwapRatesTableItem({
           </div>
         </td>
       </tr>
-      {!swapSourceItem.integrated && (
-        <tr className="text-center text-xs text-gray-500">
-          <td colSpan={3}>{swapSourceItem.name} integration coming soon...</td>
-        </tr>
-      )}
+      <tr
+        className={
+          selectedSource.id === swapSourceItem.id
+            ? "z-10 border-indigo-200 bg-gradient-to-r from-gray-200 via-transparent text-center text-xs text-gray-500"
+            : "text-center text-xs text-gray-500"
+        }
+      >
+        <td colSpan={1}>
+          <span>Allowance:</span>
+          {BN(swapSourceItem.allowance).isGreaterThanOrEqualTo(
+            convertToWei(inputUnits)
+          ) ? (
+            <ShieldCheckIcon
+              className={classNames(
+                "ml-1 inline h-5 w-5 text-green-600",
+                sourcesLoading ? "animate-ping" : ""
+              )}
+              style={{ marginBottom: "3px" }}
+            />
+          ) : (
+            <ShieldExclamationIcon
+              className={classNames(
+                "ml-1 inline h-5 w-5 text-yellow-500",
+                sourcesLoading ? "animate-ping" : ""
+              )}
+              style={{ marginBottom: "3px" }}
+            />
+          )}
+        </td>
+        <td colSpan={2}>
+          {!swapSourceItem.integrated &&
+            swapSourceItem.name + " integration coming soon..."}
+        </td>
+      </tr>
     </>
   );
 }

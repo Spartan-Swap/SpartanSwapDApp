@@ -3,6 +3,7 @@ import { useSelector } from "react-redux";
 import { BN, convertToWei } from "../utils/helpers/formatting";
 import { withTimeout } from "../utils/helpers/promises";
 import {
+  getSwapSourceAllowance,
   getSwapSourceQuote,
   swapSources,
 } from "../utils/const/swapSources/swapSources";
@@ -108,6 +109,7 @@ export const resetSwapOutputs =
             outputWei: "0",
             gasEstGwei: "0",
             error: "",
+            allowance: "0",
           });
         }
 
@@ -128,7 +130,7 @@ export const resetSwapOutputs =
  * @returns SourceProps[]
  */
 export const getSourceOutputs =
-  (provider: Provider) =>
+  (provider: Provider, userWalletAddr?: string) =>
   async (dispatch: ThunkDispatch<any, any, any>, getState: () => RootState) => {
     dispatch(updateSourceLoading(true));
     // const { provider } = getState().web3; // Once we have provider available in the redux state grab it here instead of handing it in as an arg
@@ -142,7 +144,7 @@ export const getSourceOutputs =
         const finalSources = [];
 
         if (BN(weiInput).isGreaterThan(0)) {
-          // Build async await array
+          // Build async await array starting with quotes
           for (let i = 0; i < sources.length; i++) {
             awaitArray.push(
               withTimeout(
@@ -152,10 +154,24 @@ export const getSourceOutputs =
                   asset2,
                   weiInput,
                   provider,
-                  "",
                 ])
               )
             );
+          }
+          if (userWalletAddr) {
+            // Continue building await array with approvals in the 2nd half
+            for (let i = 0; i < sources.length; i++) {
+              awaitArray.push(
+                withTimeout(
+                  3000,
+                  getSwapSourceAllowance(sources[i]!.id, [
+                    asset1,
+                    provider,
+                    userWalletAddr,
+                  ])
+                )
+              );
+            }
           }
 
           // Do async with timeout to get the updated rates
@@ -172,6 +188,7 @@ export const getSourceOutputs =
                 outputWei: awaitArray[i]!.value[0] ?? "0",
                 gasEstGwei: awaitArray[i]!.value[1] ?? "0",
                 error: awaitArray[i]!.value[2] ?? "",
+                allowance: awaitArray[sources.length + i]?.value ?? "0",
               });
             } else {
               finalSources.push({
@@ -179,6 +196,7 @@ export const getSourceOutputs =
                 outputWei: "0",
                 gasEstGwei: "0",
                 error: "API Issue",
+                allowance: "0",
               });
             }
           }
@@ -189,6 +207,7 @@ export const getSourceOutputs =
               outputWei: "0",
               gasEstGwei: "0",
               error: "",
+              allowance: "0",
             });
           }
         }

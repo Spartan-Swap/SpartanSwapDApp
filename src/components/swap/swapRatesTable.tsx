@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { useProvider } from "wagmi";
+import { useAccount, useProvider } from "wagmi";
 import { useAppDispatch } from "../../utils/hooks";
 
 import { getSourceOutputs, useSwap } from "../../state/swapStore";
 import { sortDescBN } from "../../utils/helpers/sorting";
-import SwapRatesTableItem from "./swapRatesTableItem";
 import { BN, convertGweiToWei } from "../../utils/helpers/formatting";
+import SwapRatesTableItem from "./swapRatesTableItem";
 
 export default function SwapRatesTable() {
   const {
@@ -16,6 +16,7 @@ export default function SwapRatesTable() {
     cgPriceAsset2,
     cgPriceGasAsset,
   } = useSwap();
+  const { address } = useAccount();
   const dispatch = useAppDispatch();
   const provider = useProvider({ chainId: 56 }); // TODO: use whatever chainid/network has been selected in the UI
 
@@ -50,7 +51,7 @@ export default function SwapRatesTable() {
     const debounceDelay = 500; // Avoid excessive calls from dep-changes (ie. typing fast)
     const intervalDelay = 10000; // Fallback to refresh rates every 10s if no deps change
     const checkRates = () => {
-      dispatch(getSourceOutputs(provider));
+      dispatch(getSourceOutputs(provider, address));
     };
     const timeOutId = setTimeout(() => checkRates(), debounceDelay);
     const interval = setInterval(() => checkRates(), intervalDelay);
@@ -58,7 +59,7 @@ export default function SwapRatesTable() {
       clearTimeout(timeOutId);
       clearInterval(interval);
     };
-  }, [dispatch, provider, inputUnits, asset1, asset2]);
+  }, [dispatch, provider, inputUnits, asset1, asset2, address]);
 
   return (
     <div className="px-2 sm:px-4 lg:px-6">

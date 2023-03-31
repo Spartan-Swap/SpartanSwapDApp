@@ -18,3 +18,7 @@ export const checkResolved = (settledItem: PromiseSettledResult<Response>, error
   }
   return errorMsg
 }
+
+export const asyncWrapper = async (thingYouWantWrapped: any) => {
+  return thingYouWantWrapped
+}
