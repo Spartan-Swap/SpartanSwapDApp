@@ -81,6 +81,7 @@ const Swap: NextPage = () => {
   const toggleFlipSelectedAssets = () => {
     const _prevAsset1 = asset1;
     dispatch(resetSwapOutputs());
+    setInput(convertFromWei(selectedSource.outputWei));
     dispatch(updateSwapAsset1(asset2));
     dispatch(updateSwapAsset2(_prevAsset1));
   };
@@ -241,7 +242,7 @@ const Swap: NextPage = () => {
                   )}
                   aria-hidden="true"
                   role="button"
-                  onClick={() => dispatch(getSourceOutputs(provider))}
+                  onClick={() => dispatch(getSourceOutputs(provider, address))}
                 />
               </div>
               <div className="w-max">

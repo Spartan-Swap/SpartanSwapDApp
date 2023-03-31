@@ -1,5 +1,10 @@
 import ssUtilsAbi from "../../ABIs/56/SPV2/SpartanSwapUtils.json";
-import { spv2TokenAddr, ssUtilsAddr } from "../addresses";
+import erc20Abi from "../../ABIs/ERC20.json";
+import {
+  spv2RouterAddr,
+  spv2TokenAddr,
+  ssUtilsAddr,
+} from "../addresses";
 import { Contract } from "ethers";
 
 import type { SwapSourceProps } from "./swapSources";
@@ -7,11 +12,11 @@ import type { Provider } from "@wagmi/core";
 import type { AssetProps } from "../assets";
 
 // TODO: Update SSwap API quote endpoint to include calldata via SP router
-export const spv2SourceQuote = async (
+export const spv2Quote = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
   weiInput: string,
-  provider: Provider | undefined,
+  provider: Provider | undefined
 ) => {
   const gasEst = [
     selectedAsset1.address.toLowerCase(),
@@ -45,7 +50,89 @@ export const spv2SourceQuote = async (
   return returnVal;
 };
 
-// TODO spv2SourceSwap()
+export const spv2Allowance = async (
+  selectedAsset1: AssetProps,
+  provider: Provider,
+  userWalletAddr: string
+) => {
+  // TODO: Add 'allowance' return to SSUtils contract & replace the below
+  let returnVal = "";
+  if (provider) {
+    const assetContract = new Contract(
+      selectedAsset1.address,
+      erc20Abi.abi,
+      provider
+    );
+    if (assetContract) {
+      await assetContract.callStatic
+        ?.allowance?.(userWalletAddr, spv2RouterAddr)
+        .then((result) => {
+          if (result) {
+            returnVal = result.toString();
+          } else {
+            returnVal = "0";
+          }
+        });
+    }
+  }
+  return returnVal;
+};
+
+export const spv2Approve = async (
+  selectedAsset1: AssetProps,
+  newAllowanceWei: string,
+  provider: Provider
+) => {
+  // TODO: Add 'approval callData' return to SSUtils contract & replace the below
+  let returnVal = false;
+  if (provider) {
+    const assetContract = new Contract(
+      selectedAsset1.address,
+      erc20Abi.abi,
+      provider
+    );
+    if (assetContract) {
+      await assetContract
+        ?.approve?.(spv2RouterAddr, newAllowanceWei)
+        .then((result: boolean) => {
+          if (result) {
+            returnVal = result;
+          } else {
+            returnVal = false;
+          }
+        });
+    }
+  }
+  return returnVal;
+};
+
+// export const spv2Swap = async (
+//   selectedAsset1: AssetProps,
+//   newAllowanceWei: string,
+//   provider: Provider
+// ) => {
+//   // TODO: Add 'approval callData' return to SSUtils contract & replace the below
+//   let returnVal = false;
+//   if (provider) {
+//     const assetContract = new Contract(
+//       selectedAsset1.address,
+//       erc20Abi.abi,
+//       provider
+//     );
+//     if (assetContract) {
+//       await assetContract.callStatic
+//         ?.approve?.(spv2RouterAddr, newAllowanceWei)
+//         .then((result) => {
+//           if (result) {
+//             returnVal = result;
+//           } else {
+//             returnVal = false;
+//           }
+//         });
+//     }
+//   }
+//   return returnVal;
+// };
 
 export const spv2Source: SwapSourceProps = {
   id: "SPV2",
@@ -60,4 +147,5 @@ export const spv2Source: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowance: "0",
 };

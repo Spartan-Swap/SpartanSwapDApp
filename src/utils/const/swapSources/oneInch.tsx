@@ -3,7 +3,7 @@ import { gasDefault } from "../general";
 import type { AssetProps } from "../assets";
 import type { SwapSourceProps } from "./swapSources";
 
-export const oneInchSourceQuote = async (
+export const oneInchQuote = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
   weiInput: string
@@ -38,7 +38,33 @@ export const oneInchSourceQuote = async (
   return returnVal;
 };
 
-export const oneInchSourceSwap = async (
+export const oneInchAllowance = async (
+  selectedAsset1: AssetProps,
+  userWalletAddr: string
+) => {
+  const _asset1Addr =
+    selectedAsset1.address.toLowerCase() === address0
+      ? oneInchNativeAddr
+      : selectedAsset1.address;
+  let returnVal = "";
+  const queryUrl =
+    "https://api.1inch.io/v5.0/56/approve/allowance?tokenAddress=" +
+    _asset1Addr +
+    "&walletAddress=" +
+    userWalletAddr;
+  await fetch(queryUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        returnVal = "0";
+      } else {
+        returnVal = data.allowance.toString();
+      }
+    });
+  return returnVal;
+};
+
+export const oneInchSwap = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
   weiInput: string,
@@ -118,4 +144,5 @@ export const oneInchSource: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowance: "0",
 };

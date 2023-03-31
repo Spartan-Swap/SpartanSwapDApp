@@ -96,4 +96,5 @@ export const zeroExSource: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowance: "0",
 };

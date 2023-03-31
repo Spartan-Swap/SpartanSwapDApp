@@ -1,7 +1,7 @@
 import type { AssetProps } from "../assets";
 import type { SwapSourceProps } from "./swapSources";
 
-export const pcsSourceQuote = async (
+export const pcsQuote = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
   weiInput: string
@@ -30,7 +30,7 @@ export const pcsSourceQuote = async (
 
 // TODO: pcsSourceSwap()
 
-export const pancakeswapSource: SwapSourceProps = {
+export const pcsSource: SwapSourceProps = {
   id: "PCS",
   name: "PancakeSwap",
   type: "Automated Market Maker",
@@ -41,4 +41,5 @@ export const pancakeswapSource: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowance: "0",
 };
