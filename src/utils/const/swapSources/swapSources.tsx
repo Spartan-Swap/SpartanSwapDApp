@@ -1,4 +1,4 @@
-import { zeroExQuote, zeroExSource } from "./zeroEx";
+import { zeroExAllowance, zeroExQuote, zeroExSource } from "./zeroEx";
 import { spv2Allowance, spv2Quote, spv2Source } from "./spv2";
 import { pcsSource, pcsQuote } from "./pcs";
 import { oneInchAllowance, oneInchQuote, oneInchSource } from "./oneInch";
@@ -20,6 +20,7 @@ export type SwapSourceProps = {
   gasEstGwei: string;
   loading: boolean;
   error: string;
+  allowanceTarget: string;
   allowance: string;
 };
 
@@ -55,7 +56,7 @@ export const getSwapSourceQuote = (
 
 export const getSwapSourceAllowance = (
   sourceId: string,
-  args: [selectedAsset1: AssetProps, provider: Provider, userWalletAddr: string]
+  args: [selectedAsset1: AssetProps, provider: Provider, userWalletAddr: string, allowanceTarget?: string]
 ) => {
   // TODO: This should be called at the same time as the quotes (if wallet/etc available) & inserted ...
   // ... inside the source object (so we can show the user which sources they already have approvals for)
@@ -65,11 +66,11 @@ export const getSwapSourceAllowance = (
   } else {
     switch (sourceId) {
       case "SPV2":
-        return spv2Allowance(args[0], args[1], args[2]);
+        return spv2Allowance(args[0], args[1], args[2],);
       case "1INCH":
         return oneInchAllowance(args[0], args[2]);
       case "0X":
-        return asyncWrapper("0"); // TODO
+        return zeroExAllowance(args[0], args[1], args[2], args[3] ?? "");
       case "PCS":
         return asyncWrapper("0"); // TODO
       default:

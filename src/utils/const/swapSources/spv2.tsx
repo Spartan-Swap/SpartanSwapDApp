@@ -1,14 +1,10 @@
 import ssUtilsAbi from "../../ABIs/56/SPV2/SpartanSwapUtils.json";
-import erc20Abi from "../../ABIs/ERC20.json";
-import {
-  spv2RouterAddr,
-  spv2TokenAddr,
-  ssUtilsAddr,
-} from "../addresses";
+import { spv2RouterAddr, spv2TokenAddr, ssUtilsAddr } from "../addresses";
 import { Contract } from "ethers";
+import { erc20ABI } from "@wagmi/core";
 
-import type { SwapSourceProps } from "./swapSources";
 import type { Provider } from "@wagmi/core";
+import type { SwapSourceProps } from "./swapSources";
 import type { AssetProps } from "../assets";
 
 // TODO: Update SSwap API quote endpoint to include calldata via SP router
@@ -60,7 +56,7 @@ export const spv2Allowance = async (
   if (provider) {
     const assetContract = new Contract(
       selectedAsset1.address,
-      erc20Abi.abi,
+      erc20ABI,
       provider
     );
     if (assetContract) {
@@ -88,7 +84,7 @@ export const spv2Approve = async (
   if (provider) {
     const assetContract = new Contract(
       selectedAsset1.address,
-      erc20Abi.abi,
+      erc20ABI,
       provider
     );
     if (assetContract) {
@@ -116,7 +112,7 @@ export const spv2Approve = async (
 //   if (provider) {
 //     const assetContract = new Contract(
 //       selectedAsset1.address,
-//       erc20Abi.abi,
+//       erc20ABI,
 //       provider
 //     );
 //     if (assetContract) {
@@ -147,5 +143,6 @@ export const spv2Source: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowanceTarget: "",
   allowance: "0",
 };

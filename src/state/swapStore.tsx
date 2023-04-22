@@ -109,6 +109,7 @@ export const resetSwapOutputs =
             outputWei: "0",
             gasEstGwei: "0",
             error: "",
+            allowanceTarget: "",
             allowance: "0",
           });
         }
@@ -141,6 +142,7 @@ export const getSourceOutputs =
     try {
       if (sources.length > 0) {
         let awaitArray = [];
+        let allowanceArray = [];
         const finalSources = [];
 
         if (BN(weiInput).isGreaterThan(0)) {
@@ -158,24 +160,35 @@ export const getSourceOutputs =
               )
             );
           }
+
+          // Do async with timeout to get the updated rates
+          awaitArray = (await Promise.allSettled(awaitArray)) as {
+            status: "fulfilled" | "rejected";
+            value: string;
+          }[];
+
+          // Build separate allowance checking array.
+          // Some calls require knowing result of the quote ...
+          // ... api call to know the target allowance address
+          //
           if (userWalletAddr) {
-            // Continue building await array with approvals in the 2nd half
             for (let i = 0; i < sources.length; i++) {
-              awaitArray.push(
+              allowanceArray.push(
                 withTimeout(
                   3000,
                   getSwapSourceAllowance(sources[i]!.id, [
                     asset1,
                     provider,
                     userWalletAddr,
+                    awaitArray[i]!.value[3] ?? "",
                   ])
                 )
               );
             }
           }
 
-          // Do async with timeout to get the updated rates
-          awaitArray = (await Promise.allSettled(awaitArray)) as {
+          // Do async with timeout to get the updated allowances
+          allowanceArray = (await Promise.allSettled(allowanceArray)) as {
             status: "fulfilled" | "rejected";
             value: string;
           }[];
@@ -188,7 +201,10 @@ export const getSourceOutputs =
                 outputWei: awaitArray[i]!.value[0] ?? "0",
                 gasEstGwei: awaitArray[i]!.value[1] ?? "0",
                 error: awaitArray[i]!.value[2] ?? "",
-                allowance: awaitArray[sources.length + i]?.value ?? "0",
+                allowanceTarget: awaitArray[i]!.value[3] ?? "",
+                allowance: userWalletAddr
+                  ? allowanceArray[i]?.value ?? "0"
+                  : "0",
               });
             } else {
               finalSources.push({
@@ -196,6 +212,7 @@ export const getSourceOutputs =
                 outputWei: "0",
                 gasEstGwei: "0",
                 error: "API Issue",
+                allowanceTarget: "",
                 allowance: "0",
               });
             }
@@ -207,6 +224,7 @@ export const getSourceOutputs =
               outputWei: "0",
               gasEstGwei: "0",
               error: "",
+              allowanceTarget: "",
               allowance: "0",
             });
           }

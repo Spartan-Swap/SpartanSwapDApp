@@ -41,5 +41,6 @@ export const pcsSource: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowanceTarget: "",
   allowance: "0",
 };
