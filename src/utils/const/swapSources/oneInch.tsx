@@ -144,5 +144,6 @@ export const oneInchSource: SwapSourceProps = {
   gasEstGwei: "",
   loading: false,
   error: "",
+  allowanceTarget: "", // Not required if using API quote call inc user addr
   allowance: "0",
 };
