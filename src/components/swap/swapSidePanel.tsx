@@ -13,10 +13,12 @@ import { allSwapSidePanelAtoms as atoms } from "../../state/atoms";
 
 import { gasDefault } from "../../utils/const/general";
 import { useSwap } from "../../state/swapStore";
+import { useAccount } from "wagmi";
 
 const tabs: string[] = ["Swap Details", "Price Chart"];
 
 export function SwapSidePanel() {
+  const { isConnected } = useAccount();
   const { asset1, asset2, selectedSource, inputUnits } = useSwap();
 
   const [, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
@@ -116,7 +118,10 @@ export function SwapSidePanel() {
               className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               // TODO: Add disabled style state
               onClick={() => setSwapTxnOpen(true)}
-              disabled={BN(selectedSource.outputWei).isLessThanOrEqualTo(0)}
+              disabled={
+                BN(selectedSource.outputWei).isLessThanOrEqualTo(0) ||
+                !isConnected
+              }
             >
               Swap
             </button>

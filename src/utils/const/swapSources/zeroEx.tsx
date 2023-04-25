@@ -5,7 +5,7 @@ import { erc20ABI } from "@wagmi/core";
 
 import type { AssetProps } from "../assets";
 import type { SwapSourceProps } from "./swapSources";
-import type { Provider } from "@wagmi/core";
+import type { Provider, Signer } from "@wagmi/core";
 
 const parseZeroExQuoteUrl = (
   selectedAsset1: AssetProps,
@@ -85,6 +85,37 @@ export const zeroExAllowance = async (
             returnVal = result.toString();
           } else {
             returnVal = "0";
+          }
+        });
+    }
+  }
+  return returnVal;
+};
+
+export const zeroExApprove = async (
+  selectedAsset1: AssetProps,
+  newAllowanceWei: string,
+  signer: Signer,
+  allowanceTarget: string
+) => {
+  let returnVal = false;
+  if (signer && allowanceTarget !== "") {
+    const assetContract = new Contract(
+      selectedAsset1.address,
+      erc20ABI,
+      signer
+    );
+    if (assetContract) {
+      const ORs = {
+        gasPrice: gasDefault,
+      };
+      await assetContract
+        ?.approve?.(allowanceTarget, newAllowanceWei, ORs)
+        .then((result: boolean) => {
+          if (result) {
+            returnVal = result;
+          } else {
+            returnVal = false;
           }
         });
     }

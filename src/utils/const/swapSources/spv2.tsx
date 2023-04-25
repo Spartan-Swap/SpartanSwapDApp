@@ -1,11 +1,13 @@
 import ssUtilsAbi from "../../ABIs/56/SPV2/SpartanSwapUtils.json";
-import { spv2RouterAddr, spv2TokenAddr, ssUtilsAddr } from "../addresses";
+import spv2RouterAbi from "../../ABIs/56/SPV2/Router.json";
+import { address0, spv2RouterAddr, spv2TokenAddr, ssUtilsAddr } from "../addresses";
 import { Contract } from "ethers";
 import { erc20ABI } from "@wagmi/core";
 
-import type { Provider } from "@wagmi/core";
+import type { Provider, Signer } from "@wagmi/core";
 import type { SwapSourceProps } from "./swapSources";
 import type { AssetProps } from "../assets";
+import { gasDefault } from "../general";
 
 // TODO: Update SSwap API quote endpoint to include calldata via SP router
 export const spv2Quote = async (
@@ -77,19 +79,22 @@ export const spv2Allowance = async (
 export const spv2Approve = async (
   selectedAsset1: AssetProps,
   newAllowanceWei: string,
-  provider: Provider
+  signer: Signer
 ) => {
   // TODO: Add 'approval callData' return to SSUtils contract & replace the below
   let returnVal = false;
-  if (provider) {
+  if (signer) {
     const assetContract = new Contract(
       selectedAsset1.address,
       erc20ABI,
-      provider
+      signer
     );
     if (assetContract) {
+      const ORs = {
+        gasPrice: gasDefault,
+      }
       await assetContract
-        ?.approve?.(spv2RouterAddr, newAllowanceWei)
+        ?.approve?.(spv2RouterAddr, newAllowanceWei, ORs)
         .then((result: boolean) => {
           if (result) {
             returnVal = result;
@@ -102,33 +107,35 @@ export const spv2Approve = async (
   return returnVal;
 };
 
-// export const spv2Swap = async (
-//   selectedAsset1: AssetProps,
-//   newAllowanceWei: string,
-//   provider: Provider
-// ) => {
-//   // TODO: Add 'approval callData' return to SSUtils contract & replace the below
-//   let returnVal = false;
-//   if (provider) {
-//     const assetContract = new Contract(
-//       selectedAsset1.address,
-//       erc20ABI,
-//       provider
-//     );
-//     if (assetContract) {
-//       await assetContract.callStatic
-//         ?.approve?.(spv2RouterAddr, newAllowanceWei)
-//         .then((result) => {
-//           if (result) {
-//             returnVal = result;
-//           } else {
-//             returnVal = false;
-//           }
-//         });
-//     }
-//   }
-//   return returnVal;
-// };
+export const spv2Swap = async (
+  asset1: AssetProps,
+  asset2: AssetProps,
+  inputWei: string,
+  minAmountWei: string,
+  signer: Signer
+) => {
+  // TODO: Add 'swap txn callData' return to SSUtils contract & replace the below
+  let returnVal = false;
+  if (signer) {
+    const routerContract = new Contract(spv2RouterAddr, spv2RouterAbi.abi, signer);
+    if (routerContract) {
+      const ORs = {
+        value: asset1.address === address0 ? inputWei : null,
+        gasPrice: gasDefault,
+      }
+      await routerContract
+        ?.swap?.(inputWei, asset1.address, asset2.address, minAmountWei, ORs)
+        .then((result: boolean) => {
+          if (result) {
+            returnVal = result;
+          } else {
+            returnVal = false;
+          }
+        });
+    }
+  }
+  return returnVal;
+};
 
 export const spv2Source: SwapSourceProps = {
   id: "SPV2",

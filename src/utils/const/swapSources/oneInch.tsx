@@ -1,7 +1,11 @@
 import { address0, oneInchNativeAddr } from "../addresses";
 import { gasDefault } from "../general";
-import type { AssetProps } from "../assets";
+import { erc20ABI } from "wagmi";
+import { Contract } from "ethers";
+
 import type { SwapSourceProps } from "./swapSources";
+import type { AssetProps } from "../assets";
+import type { Signer } from "@wagmi/core";
 
 export const oneInchQuote = async (
   selectedAsset1: AssetProps,
@@ -61,6 +65,48 @@ export const oneInchAllowance = async (
         returnVal = data.allowance.toString();
       }
     });
+  return returnVal;
+};
+
+export const oneInchApprove = async (
+  selectedAsset1: AssetProps,
+  newAllowanceWei: string,
+  signer: Signer
+) => {
+  let allowanceTarget = "";
+  const queryUrl = "https://api.1inch.io/v5.0/56/approve/spender";
+  await fetch(queryUrl)
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.error) {
+        allowanceTarget = "0";
+      } else {
+        allowanceTarget = data.address;
+      }
+    });
+
+  let returnVal = false;
+  if (signer && allowanceTarget !== "") {
+    const assetContract = new Contract(
+      selectedAsset1.address,
+      erc20ABI,
+      signer
+    );
+    if (assetContract) {
+      const ORs = {
+        gasPrice: gasDefault,
+      };
+      await assetContract
+        ?.approve?.(allowanceTarget, newAllowanceWei, ORs)
+        .then((result: boolean) => {
+          if (result) {
+            returnVal = result;
+          } else {
+            returnVal = false;
+          }
+        });
+    }
+  }
   return returnVal;
 };
 
