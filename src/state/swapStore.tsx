@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
-import { BN, convertToWei } from "../utils/helpers/formatting";
+import { BN, convertToWei, formatFromWei } from "../utils/helpers/formatting";
 import { withTimeout } from "../utils/helpers/promises";
 import {
   getSwapSourceAllowance,
@@ -13,15 +13,43 @@ import {
 } from "../utils/helpers/localStorage";
 import { bnbAsset, spartaAsset, wbnbAsset } from "../utils/const/assets";
 import { oneInchSource } from "../utils/const/swapSources/oneInch";
+import { address0 } from "../utils/const/addresses";
 
 import type { PayloadAction, ThunkDispatch } from "@reduxjs/toolkit";
 import type { SwapSourceProps } from "../utils/const/swapSources/swapSources";
 import type { RootState } from "../state/store";
 import type { Provider } from "@wagmi/core";
 import type { AssetProps } from "../utils/const/assets";
-import { address0 } from "../utils/const/addresses";
 
-// Define the initial state using that type
+export type SwapStepProps = {
+  name: string;
+  description: string;
+  href: string;
+  status: string;
+};
+
+const swapStep1Default = {
+  name: "Approve Token",
+  description: "Allow a contract to handle your token",
+  href: "#",
+  status: "current",
+};
+
+const swapStep2Default = {
+  name: "Set Minimum Amount",
+  description:
+    "You should set a min amount so that the transaction cancels if you get sandwich attacked.",
+  href: "#",
+  status: "upcoming",
+};
+
+const swapStep3Default = {
+  name: "Sign Transaction",
+  description: "Sign and finalise the transaction",
+  href: "#",
+  status: "upcoming",
+};
+
 const initialState = {
   sourcesLoading: false,
   sources: swapSources,
@@ -33,6 +61,9 @@ const initialState = {
   cgPriceGasAsset: "",
   cgPriceAsset1: "",
   cgPriceAsset2: "",
+  swapStep1: swapStep1Default,
+  swapStep2: swapStep2Default,
+  swapStep3: swapStep3Default,
 };
 
 export const useSwap = () => useSelector((state: RootState) => state.swap);
@@ -73,6 +104,15 @@ export const swapSlice = createSlice({
     updateCgPriceAsset2: (state, action: PayloadAction<string>) => {
       state.cgPriceAsset2 = action.payload;
     },
+    updateSwapStep1: (state, action: PayloadAction<SwapStepProps>) => {
+      state.swapStep1 = action.payload;
+    },
+    updateSwapStep2: (state, action: PayloadAction<SwapStepProps>) => {
+      state.swapStep2 = action.payload;
+    },
+    updateSwapStep3: (state, action: PayloadAction<SwapStepProps>) => {
+      state.swapStep3 = action.payload;
+    },
   },
 });
 
@@ -87,6 +127,9 @@ export const {
   updateCgPriceGasAsset,
   updateCgPriceAsset1,
   updateCgPriceAsset2,
+  updateSwapStep1,
+  updateSwapStep2,
+  updateSwapStep3,
 } = swapSlice.actions;
 
 /**
@@ -122,6 +165,7 @@ export const resetSwapOutputs =
     } catch (error: any) {
       dispatch(updateSourceError(error.toString()));
       dispatch(changeSelectedSource(selectedSource.id));
+      dispatch(changeSwapStep1());
     }
     dispatch(updateSourceLoading(false));
   };
@@ -267,8 +311,10 @@ export const changeSelectedSource =
           );
         }
       }
+      dispatch(changeSwapStep1());
     } catch (error: any) {
       console.log(error.toString());
+      dispatch(changeSwapStep1());
     }
   };
 
@@ -313,6 +359,57 @@ export const changeCgAssetPrice =
             dispatch(updateCgPriceAsset2(asset2Price));
           }
         });
+    } catch (error: any) {
+      console.log(error.toString());
+    }
+  };
+
+export const changeSwapStep1 =
+  () =>
+  async (dispatch: ThunkDispatch<any, any, any>, getState: () => RootState) => {
+    const { asset1, selectedSource, inputUnits } = getState().swap;
+
+    try {
+      const newStepObj = {
+        name: "Approve " + asset1.ticker,
+        description:
+          "Allow " +
+          (["", address0].includes(selectedSource.allowanceTarget)
+            ? "a contract"
+            : selectedSource.allowanceTarget) +
+          " to handle your " +
+          asset1.ticker,
+        href: "#",
+        status: BN(selectedSource.allowance).isGreaterThanOrEqualTo(
+          convertToWei(inputUnits)
+        )
+          ? "complete"
+          : "current",
+      };
+      dispatch(updateSwapStep1(newStepObj));
+      dispatch(changeSwapStep2());
+    } catch (error: any) {
+      console.log(error.toString());
+    }
+  };
+
+export const changeSwapStep2 =
+  () =>
+  async (dispatch: ThunkDispatch<any, any, any>, getState: () => RootState) => {
+    const { asset2, selectedSource, swapStep1 } = getState().swap;
+
+    try {
+      const newStepObj = {
+        name: "Set Minimum Amount",
+        description:
+          "You should set a min amount so that the transaction cancels if you get sandwich attacked. Current estimate: " +
+          formatFromWei(selectedSource.outputWei) +
+          " " +
+          asset2.ticker,
+        href: "#",
+        status: swapStep1.status === "complete" ? "current" : "upcoming",
+      };
+      dispatch(updateSwapStep2(newStepObj));
     } catch (error: any) {
       console.log(error.toString());
     }
