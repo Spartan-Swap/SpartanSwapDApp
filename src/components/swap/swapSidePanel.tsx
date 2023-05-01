@@ -13,11 +13,13 @@ import { allSwapSidePanelAtoms as atoms } from "../../state/atoms";
 
 import { gasDefault } from "../../utils/const/general";
 import { useSwap } from "../../state/swapStore";
+import { useAccount } from "wagmi";
 
 const tabs: string[] = ["Swap Details", "Price Chart"];
 
 export function SwapSidePanel() {
-  const { asset1, asset2, selectedSource } = useSwap();
+  const { isConnected } = useAccount();
+  const { asset1, asset2, selectedSource, inputUnits } = useSwap();
 
   const [, setSwapTxnOpen] = useAtom(atoms.swapTxnOpenAtom);
 
@@ -90,14 +92,13 @@ export function SwapSidePanel() {
           </div>
           <div className="py-2" />
           <div className="">
-            Your {selectedSource.outputWei} {asset1.ticker} will route via
-            these pools:
+            Your {inputUnits} {asset1.ticker} will route via these pools:
           </div>
           <div className="">*Route Chart*</div>
           <div className="py-2" />
           <div className="">
-            Estimated receiving: {formatFromWei(selectedSource.outputWei ?? "0")}{" "}
-            {asset2.ticker}
+            Estimated receiving:{" "}
+            {formatFromWei(selectedSource.outputWei ?? "0")} {asset2.ticker}
           </div>
           <div className="">
             Estimated gas cost: ~
@@ -115,7 +116,12 @@ export function SwapSidePanel() {
             <button
               type="button"
               className="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-sm font-medium leading-4 text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              // TODO: Add disabled style state
               onClick={() => setSwapTxnOpen(true)}
+              disabled={
+                BN(selectedSource.outputWei).isLessThanOrEqualTo(0) ||
+                !isConnected
+              }
             >
               Swap
             </button>

@@ -1,4 +1,5 @@
-export const gasDefault = "5010000000";
-export const gasHigh = "20000000000";
+export const gasDefault = "3000000000";
+export const gasMedium = "4000000000";
+export const gasHigh = "5000000000";
 export const veryBigWeiNumber =
   "99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999";
