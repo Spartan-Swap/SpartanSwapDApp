@@ -1,10 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
-import { BN, convertToWei, formatFromWei } from "../utils/helpers/formatting";
+import {
+  BN,
+  convertToWei,
+  formatFromWei,
+  shortenString,
+} from "../utils/helpers/formatting";
 import { withTimeout } from "../utils/helpers/promises";
 import {
   getSwapSourceAllowance,
   getSwapSourceQuote,
+  getSwapSourceSpender,
   swapSources,
 } from "../utils/const/swapSources/swapSources";
 import {
@@ -185,14 +191,15 @@ export const getSourceOutputs =
 
     try {
       if (sources.length > 0) {
-        let awaitArray = [];
+        let quoteArray = [];
+        let spenderArray = [];
         let allowanceArray = [];
         const finalSources = [];
 
         if (BN(weiInput).isGreaterThan(0)) {
           // Build async await array starting with quotes
           for (let i = 0; i < sources.length; i++) {
-            awaitArray.push(
+            quoteArray.push(
               withTimeout(
                 3000,
                 getSwapSourceQuote(sources[i]!.id, [
@@ -206,7 +213,26 @@ export const getSourceOutputs =
           }
 
           // Do async with timeout to get the updated rates
-          awaitArray = (await Promise.allSettled(awaitArray)) as {
+          quoteArray = (await Promise.allSettled(quoteArray)) as {
+            status: "fulfilled" | "rejected";
+            value: string;
+          }[];
+
+          // Build separate spender checking array
+          for (let i = 0; i < sources.length; i++) {
+            spenderArray.push(
+              withTimeout(
+                3000,
+                getSwapSourceSpender(sources[i]!.id, [
+                  provider,
+                  quoteArray[i]!.value[3] ?? "",
+                ])
+              )
+            );
+          }
+
+          // Do async with timeout to get the updated spender addresses
+          spenderArray = (await Promise.allSettled(spenderArray)) as {
             status: "fulfilled" | "rejected";
             value: string;
           }[];
@@ -224,7 +250,7 @@ export const getSourceOutputs =
                     asset1,
                     provider,
                     userWalletAddr,
-                    awaitArray[i]!.value[3] ?? "",
+                    spenderArray[i]!.value,
                   ])
                 )
               );
@@ -239,13 +265,13 @@ export const getSourceOutputs =
 
           // Update array with results
           for (let i = 0; i < sources.length; i++) {
-            if (awaitArray[i]!.status === "fulfilled") {
+            if (quoteArray[i]!.status === "fulfilled") {
               finalSources.push({
                 ...(sources[i] as SwapSourceProps),
-                outputWei: awaitArray[i]!.value[0] ?? "0",
-                gasEstGwei: awaitArray[i]!.value[1] ?? "0",
-                error: awaitArray[i]!.value[2] ?? "",
-                allowanceTarget: awaitArray[i]!.value[3] ?? "",
+                outputWei: quoteArray[i]!.value[0] ?? "0",
+                gasEstGwei: quoteArray[i]!.value[1] ?? "0",
+                error: quoteArray[i]!.value[2] ?? "",
+                allowanceTarget: spenderArray[i]!.value ?? "",
                 allowance: userWalletAddr
                   ? allowanceArray[i]?.value ?? "0"
                   : "0",
@@ -376,7 +402,7 @@ export const changeSwapStep1 =
           "Allow " +
           (["", address0].includes(selectedSource.allowanceTarget)
             ? "a contract"
-            : selectedSource.allowanceTarget) +
+            : shortenString(selectedSource.allowanceTarget)) +
           " to handle your " +
           asset1.ticker,
         href: "#",

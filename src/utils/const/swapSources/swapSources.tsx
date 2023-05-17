@@ -3,12 +3,14 @@ import {
   zeroExApprove,
   zeroExQuote,
   zeroExSource,
+  zeroExSpender,
 } from "./zeroEx";
 import {
   spv2Allowance,
   spv2Approve,
   spv2Quote,
   spv2Source,
+  spv2Spender,
   spv2Swap,
 } from "./spv2";
 import { pcsSource, pcsQuote } from "./pcs";
@@ -17,6 +19,7 @@ import {
   oneInchApprove,
   oneInchQuote,
   oneInchSource,
+  oneInchSpender,
 } from "./oneInch";
 import { address0 } from "../addresses";
 import { veryBigWeiNumber } from "../general";
@@ -24,7 +27,6 @@ import { asyncWrapper } from "../../helpers/promises";
 
 import type { Provider, Signer } from "@wagmi/core";
 import type { AssetProps } from "../assets";
-import { convertToWei } from "../../helpers/formatting";
 
 export type SwapSourceProps = {
   id: string;
@@ -71,26 +73,50 @@ export const getSwapSourceQuote = (
   }
 };
 
+export const getSwapSourceSpender = (
+  sourceId: string,
+  args: [
+    provider: Provider, // Provider only if doing RPC onChain call
+    allowanceTarget?: string
+  ]
+) => {
+  switch (sourceId) {
+    case "SPV2":
+      return spv2Spender(args[0], args[1] ?? ""); // RPC call SPARTAv2.DAO()
+    case "1INCH":
+      return oneInchSpender(args[1] ?? ""); // API call
+    case "0X":
+      return zeroExSpender(args[1] ?? ""); // No call required
+    case "PCS":
+      return asyncWrapper(""); // TODO
+    default:
+      console.log("incorrect swap-source ID for external call");
+  }
+};
+
 export const getSwapSourceAllowance = (
   sourceId: string,
   args: [
     selectedAsset1: AssetProps,
     provider: Provider,
     userWalletAddr: string,
-    allowanceTarget?: string
+    allowanceTarget: string
   ]
 ) => {
   if (args[0].address.toLowerCase() === address0) {
     // could otherwise look for (args[0].type === "Native Coin")
     return asyncWrapper(veryBigWeiNumber); // If native gas asset, we dont need approval
+  } else if (args[3] === "") {
+    console.log("invalid allowance target for " + sourceId);
+    return asyncWrapper("0");
   } else {
     switch (sourceId) {
       case "SPV2":
-        return spv2Allowance(args[0], args[1], args[2]);
+        return spv2Allowance(args[0], args[1], args[2], args[3]);
       case "1INCH":
-        return oneInchAllowance(args[0], args[2]);
+        return oneInchAllowance(args[0], args[1], args[2], args[3]);
       case "0X":
-        return zeroExAllowance(args[0], args[1], args[2], args[3] ?? "");
+        return zeroExAllowance(args[0], args[1], args[2], args[3]);
       case "PCS":
         return asyncWrapper("0"); // TODO
       default:

@@ -64,6 +64,11 @@ export const zeroExQuote = async (
   return returnVal;
 };
 
+export const zeroExSpender = async (allowanceTarget?: string) => {
+  const returnVal = allowanceTarget ?? ""; // A parent function does address0 check prior to this call, not needed here for allowanceTarget
+  return returnVal;
+};
+
 export const zeroExAllowance = async (
   selectedAsset1: AssetProps,
   provider: Provider,

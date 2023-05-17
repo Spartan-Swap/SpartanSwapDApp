@@ -55,6 +55,7 @@ export default function TxnProgress() {
               className={classNames(stepIdx !== 2 ? "pb-10" : "", "relative")}
             >
               {step.status === "complete" ? (
+                // TODO: Add button to revoke allowance for stepIdx === 1
                 <>
                   {stepIdx !== 2 ? (
                     <div
@@ -77,6 +78,8 @@ export default function TxnProgress() {
                       </span>
                       <span className="text-sm text-gray-400">
                         {step.description}
+                        {/* TODO: Add ext link icon button here to check allowance target addr in explorer
+                        {stepIdx === 1 && "BUTTON"} */}
                       </span>
                     </span>
                   </div>

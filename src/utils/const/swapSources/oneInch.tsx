@@ -5,7 +5,7 @@ import { Contract } from "ethers";
 
 import type { SwapSourceProps } from "./swapSources";
 import type { AssetProps } from "../assets";
-import type { Signer } from "@wagmi/core";
+import type { Signer, Provider } from "@wagmi/core";
 
 export const oneInchQuote = async (
   selectedAsset1: AssetProps,
@@ -42,29 +42,49 @@ export const oneInchQuote = async (
   return returnVal;
 };
 
-export const oneInchAllowance = async (
-  selectedAsset1: AssetProps,
-  userWalletAddr: string
-) => {
-  const _asset1Addr =
-    selectedAsset1.address.toLowerCase() === address0
-      ? oneInchNativeAddr
-      : selectedAsset1.address;
+export const oneInchSpender = async (allowanceTarget?: string) => {
+  if (allowanceTarget && allowanceTarget !== "") {
+    return allowanceTarget;
+  }
   let returnVal = "";
-  const queryUrl =
-    "https://api.1inch.io/v5.0/56/approve/allowance?tokenAddress=" +
-    _asset1Addr +
-    "&walletAddress=" +
-    userWalletAddr;
+  const queryUrl = "https://api.1inch.io/v5.0/56/approve/spender";
   await fetch(queryUrl)
     .then((response) => response.json())
     .then((data) => {
       if (data.error) {
-        returnVal = "0";
+        returnVal = "";
       } else {
-        returnVal = data.allowance.toString();
+        returnVal = data.address;
       }
     });
+  return returnVal;
+};
+
+export const oneInchAllowance = async (
+  selectedAsset1: AssetProps,
+  provider: Provider,
+  userWalletAddr: string,
+  allowanceTarget: string
+) => {
+  let returnVal = ""; // A parent function does address0 check prior to this call, not needed here for allowanceTarget
+  if (provider) {
+    const assetContract = new Contract(
+      selectedAsset1.address,
+      erc20ABI,
+      provider
+    );
+    if (assetContract) {
+      await assetContract.callStatic
+        ?.allowance?.(userWalletAddr, allowanceTarget)
+        .then((result) => {
+          if (result) {
+            returnVal = result.toString();
+          } else {
+            returnVal = "0";
+          }
+        });
+    }
+  }
   return returnVal;
 };
 
@@ -79,7 +99,7 @@ export const oneInchApprove = async (
     .then((response) => response.json())
     .then((data) => {
       if (data.error) {
-        allowanceTarget = "0";
+        allowanceTarget = "";
       } else {
         allowanceTarget = data.address;
       }
