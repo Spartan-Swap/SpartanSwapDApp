@@ -1,7 +1,7 @@
 import { CheckIcon, LockClosedIcon } from "@heroicons/react/20/solid";
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import { useSigner } from "wagmi";
+import { useAccount, useSigner } from "wagmi";
 import { useSwap } from "../../state/swapStore";
 import {
   getSwapSourceApproval,
@@ -18,6 +18,7 @@ import { ethers } from "ethers";
 import { allSwapTxnModalAtoms as atoms } from "../../state/atoms";
 
 export default function TxnProgress() {
+  const { address } = useAccount();
   const {
     swapStep1,
     swapStep2,
@@ -270,6 +271,8 @@ export default function TxnProgress() {
                 convertToWei(inputUnits),
                 BN(minAmountWei).toFixed(0),
                 signer,
+                address ?? "",
+                minPC, // Slippage PC in units. ie. 1 = 1% ... 0.5 = 0.5% ... etc
               ])
             }
           >

@@ -6,6 +6,7 @@ import { erc20ABI } from "@wagmi/core";
 import type { AssetProps } from "../assets";
 import type { SwapSourceProps } from "./swapSources";
 import type { Provider, Signer } from "@wagmi/core";
+import { BN } from "../../helpers/formatting";
 
 const parseZeroExQuoteUrl = (
   selectedAsset1: AssetProps,
@@ -57,7 +58,7 @@ export const zeroExQuote = async (
           data.buyAmount,
           data.estimatedGas,
           "",
-          data.allowanceTarget,
+          data.allowanceTarget === address0 ? data.to : data.allowanceTarget,
         ];
       }
     });
@@ -65,7 +66,7 @@ export const zeroExQuote = async (
 };
 
 export const zeroExSpender = async (allowanceTarget?: string) => {
-  const returnVal = allowanceTarget ?? ""; // A parent function does address0 check prior to this call, not needed here for allowanceTarget
+  const returnVal = allowanceTarget !== "" ? allowanceTarget : ""; // A parent function does address0 check prior to this call, not needed here for allowanceTarget
   return returnVal;
 };
 
@@ -129,25 +130,43 @@ export const zeroExApprove = async (
 };
 
 export const zeroExSwap = async (
-  selectedAsset1: AssetProps,
-  selectedAsset2: AssetProps,
-  weiInput: string,
+  asset1: AssetProps,
+  asset2: AssetProps,
+  inputWei: string,
+  slippagePC: string, // Slippage PC in units. ie. 1 = 1% ... 0.5 = 0.5% ... etc
+  signer: Signer,
   userWalletAddr: string
 ) => {
-  let returnVal: [string, string, string] = ["", "", ""];
+  const slipConverted = BN(slippagePC).div("100").toString();
+  let tx = { to: "", from: "", data: "", value: "", gasPrice: "" };
   const takerString = userWalletAddr ? "&takerAddress=" + userWalletAddr : "";
+  const slipString = "&slippagePercentage=" + slipConverted;
   const queryUrl =
-    parseZeroExQuoteUrl(selectedAsset1, selectedAsset2, weiInput) + takerString;
+    parseZeroExQuoteUrl(asset1, asset2, inputWei) + takerString + slipString;
   await fetch(queryUrl)
     .then((response) => response.json())
-    .then((data) => {
-      if (data.reason) {
-        returnVal = ["0", "", data.reason];
+    .then((txResp) => {
+      if (txResp.error) {
+        console.log("tx failed", txResp);
+        tx = { to: "", from: "", data: "", value: "", gasPrice: "" };
       } else {
-        returnVal = [data.buyAmount, data.estimatedGas, ""];
+        const { to, data, value, gasPrice } = txResp;
+        tx = { to, from: userWalletAddr, data, value, gasPrice };
       }
     });
-  return returnVal;
+
+  let txnSuccess = false;
+  if (signer && tx) {
+    await signer.sendTransaction(tx).then((result) => {
+      if (result) {
+        txnSuccess = true;
+      } else {
+        console.log("tx failed");
+        txnSuccess = false;
+      }
+    });
+  }
+  return txnSuccess;
 };
 
 export const zeroExSource: SwapSourceProps = {

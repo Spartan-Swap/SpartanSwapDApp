@@ -84,7 +84,11 @@ export default function SwapRatesTableItem({
           <div className="text-xs text-gray-500">
             ~$
             {returnUsdValAsset(
-              convertGweiToWei(swapSourceItem.gasEstGwei),
+              convertGweiToWei(
+                BN(convertFromGwei(gasDefault))
+                  .times(swapSourceItem.gasEstGwei)
+                  .toString()
+              ),
               cgPriceGasAsset
             )}
             <div className="ml-1 inline-block h-4 w-4 align-top">

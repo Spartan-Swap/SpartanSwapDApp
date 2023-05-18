@@ -4,8 +4,15 @@ import { useAppDispatch } from "../../utils/hooks";
 
 import { getSourceOutputs, useSwap } from "../../state/swapStore";
 import { sortDescBN } from "../../utils/helpers/sorting";
-import { BN, convertGweiToWei } from "../../utils/helpers/formatting";
+import {
+  BN,
+  convertFromGwei,
+  convertFromWei,
+  convertGweiToWei,
+} from "../../utils/helpers/formatting";
 import SwapRatesTableItem from "./swapRatesTableItem";
+import { returnUsdValAsset } from "../../utils/helpers/valueReturns";
+import { gasDefault } from "../../utils/const/general";
 
 export default function SwapRatesTable() {
   const {
@@ -26,20 +33,27 @@ export default function SwapRatesTable() {
   useEffect(() => {
     setsourcesSorted(
       [...sources].sort((a, b) => {
-        let _totalA = a.outputWei;
-        let _totalB = b.outputWei;
+        let _totalA = convertFromWei(a.outputWei);
+        let _totalB = convertFromWei(b.outputWei);
         if (
           BN(cgPriceAsset2).isGreaterThan("0") &&
           BN(cgPriceGasAsset).isGreaterThan("0")
         ) {
-          _totalA = BN(_totalA)
-            .times(cgPriceAsset2)
-            .minus(BN(convertGweiToWei(a.gasEstGwei)).times(cgPriceGasAsset))
-            .toString();
-          _totalB = BN(_totalB)
-            .times(cgPriceAsset2)
-            .minus(BN(convertGweiToWei(b.gasEstGwei)).times(cgPriceGasAsset))
-            .toString();
+          const _gasUsdA = returnUsdValAsset(
+            convertGweiToWei(
+              BN(convertFromGwei(gasDefault)).times(a.gasEstGwei).toString()
+            ),
+            cgPriceGasAsset
+          );
+          const _gasUsdB = returnUsdValAsset(
+            convertGweiToWei(
+              BN(convertFromGwei(gasDefault)).times(b.gasEstGwei).toString()
+            ),
+            cgPriceGasAsset
+          );
+          console.log(_gasUsdA, _gasUsdB);
+          _totalA = BN(_totalA).times(cgPriceAsset2).minus(_gasUsdA).toString();
+          _totalB = BN(_totalB).times(cgPriceAsset2).minus(_gasUsdB).toString();
         }
         return sortDescBN(_totalA, _totalB);
       })

@@ -91,20 +91,9 @@ export const oneInchAllowance = async (
 export const oneInchApprove = async (
   selectedAsset1: AssetProps,
   newAllowanceWei: string,
-  signer: Signer
+  signer: Signer,
+  allowanceTarget: string
 ) => {
-  let allowanceTarget = "";
-  const queryUrl = "https://api.1inch.io/v5.0/56/approve/spender";
-  await fetch(queryUrl)
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.error) {
-        allowanceTarget = "";
-      } else {
-        allowanceTarget = data.address;
-      }
-    });
-
   let returnVal = false;
   if (signer && allowanceTarget !== "") {
     const assetContract = new Contract(
@@ -131,72 +120,59 @@ export const oneInchApprove = async (
 };
 
 export const oneInchSwap = async (
-  selectedAsset1: AssetProps,
-  selectedAsset2: AssetProps,
-  weiInput: string,
+  asset1: AssetProps,
+  asset2: AssetProps,
+  inputWei: string,
+  slippagePC: string, // Slippage PC in units. ie. 1 = 1% ... 0.5 = 0.5% ... etc
+  signer: Signer,
   userWalletAddr: string
 ) => {
+  let tx = { to: "", from: "", data: "", value: "", gasPrice: "" };
   const _asset1Addr =
-    selectedAsset1.address.toLowerCase() === address0
+    asset1.address.toLowerCase() === address0
       ? oneInchNativeAddr
-      : selectedAsset1.address;
+      : asset1.address;
   const _asset2Addr =
-    selectedAsset2.address.toLowerCase() === address0
+    asset2.address.toLowerCase() === address0
       ? oneInchNativeAddr
-      : selectedAsset2.address;
-  let returnVal: [
-    string,
-    string,
-    string,
-    {
-      from: string;
-      to: string;
-      data: string;
-      value: string;
-      gasPrice: string;
-      gas: string;
-    }
-  ] = [
-    "",
-    "",
-    "",
-    {
-      from: "",
-      to: "",
-      data: "",
-      value: "",
-      gasPrice: "",
-      gas: "",
-    },
-  ];
+      : asset2.address;
   const queryUrl =
     "https://api.1inch.io/v5.0/56/swap?&fromTokenAddress=" +
     _asset1Addr +
     "&toTokenAddress=" +
     _asset2Addr +
     "&amount=" +
-    weiInput +
+    inputWei +
     "&gasPrice=" +
     gasDefault +
     "&fromAddress=" +
-    userWalletAddr;
+    userWalletAddr +
+    "&slippage=" +
+    slippagePC;
   await fetch(queryUrl)
     .then((response) => response.json())
-    .then((data) => {
-      if (data.error) {
-        returnVal[0] = "0";
-        returnVal[1] = "";
-        returnVal[2] = data.error;
+    .then((txResp) => {
+      if (txResp.error) {
+        console.log("tx failed", txResp);
+        tx = { to: "", from: "", data: "", value: "", gasPrice: "" };
       } else {
-        returnVal = [
-          data.toTokenAmount,
-          data.estimatedGas.toString(),
-          "",
-          data.tx,
-        ];
+        const { to, from, data, value, gasPrice } = txResp.tx;
+        tx = { to, from, data, value, gasPrice };
       }
     });
-  return returnVal;
+
+  let txnSuccess = false;
+  if (signer && tx.to !== "") {
+    await signer.sendTransaction(tx).then((result) => {
+      if (result) {
+        txnSuccess = true;
+      } else {
+        console.log("tx failed");
+        txnSuccess = false;
+      }
+    });
+  }
+  return txnSuccess;
 };
 
 export const oneInchSource: SwapSourceProps = {

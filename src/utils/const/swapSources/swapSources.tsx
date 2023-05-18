@@ -4,6 +4,7 @@ import {
   zeroExQuote,
   zeroExSource,
   zeroExSpender,
+  zeroExSwap,
 } from "./zeroEx";
 import {
   spv2Allowance,
@@ -20,6 +21,7 @@ import {
   oneInchQuote,
   oneInchSource,
   oneInchSpender,
+  oneInchSwap,
 } from "./oneInch";
 import { address0 } from "../addresses";
 import { veryBigWeiNumber } from "../general";
@@ -137,9 +139,9 @@ export const getSwapSourceApproval = (
 ) => {
   switch (sourceId) {
     case "SPV2":
-      return spv2Approve(args[0], args[1], args[2]);
+      return spv2Approve(args[0], args[1], args[2], args[3] ?? "");
     case "1INCH":
-      return oneInchApprove(args[0], args[1], args[2]);
+      return oneInchApprove(args[0], args[1], args[2], args[3] ?? "");
     case "0X":
       return zeroExApprove(args[0], args[1], args[2], args[3] ?? "");
     case "PCS":
@@ -156,16 +158,18 @@ export const getSwapSourceSwapTxn = (
     asset2: AssetProps,
     inputWei: string,
     minAmountWei: string,
-    signer: Signer
+    signer: Signer,
+    userWalletAddr: string,
+    slippagePC: string // Slippage PC in units. ie. 1 = 1% ... 0.5 = 0.5% ... etc
   ]
 ) => {
   switch (sourceId) {
     case "SPV2":
       return spv2Swap(args[0], args[1], args[2], args[3], args[4]);
     case "1INCH":
-      return asyncWrapper(false); // TODO
+      return oneInchSwap(args[0], args[1], args[2], args[6], args[4], args[5]);
     case "0X":
-      return asyncWrapper(false); // TODO
+      return zeroExSwap(args[0], args[1], args[2], args[6], args[4], args[5]);
     case "PCS":
       return asyncWrapper(false); // TODO
     default:

@@ -1,5 +1,4 @@
 import ssUtilsAbi from "../../ABIs/56/SPV2/SpartanSwapUtils.json";
-import spv2TokenAbi from "../../ABIs/56/SPV2/Sparta.json";
 import spv2RouterAbi from "../../ABIs/56/SPV2/Router.json";
 import {
   address0,
@@ -15,7 +14,7 @@ import type { Provider, Signer } from "@wagmi/core";
 import type { SwapSourceProps } from "./swapSources";
 import type { AssetProps } from "../assets";
 
-// TODO: Update SSwap API quote endpoint to include calldata via SP router
+// TODO: Update SSwap API quote endpoint to include swap tx calldata via SP router & allowanceTarget
 export const spv2Quote = async (
   selectedAsset1: AssetProps,
   selectedAsset2: AssetProps,
@@ -26,8 +25,8 @@ export const spv2Quote = async (
     selectedAsset1.address.toLowerCase(),
     selectedAsset2.address.toLowerCase(),
   ].includes(spv2TokenAddr.toLowerCase())
-    ? "230000" // Single-swap gas estimate
-    : "320000"; // Double-swap gas estimate
+    ? "320000" // Single-swap gas estimate
+    : "380000"; // Double-swap gas estimate
   let returnVal: [string, string, string] = ["", "", ""];
   if (provider) {
     const quoteSPV2Contract = new Contract(
@@ -58,27 +57,9 @@ export const spv2Spender = async (
   provider: Provider,
   allowanceTarget?: string
 ) => {
-  // TODO: Add 'spenderAddr' return to SSUtils contract to bypass the below RPC call is 'quote' is done first
-  if (allowanceTarget && allowanceTarget !== "") {
-    return allowanceTarget;
-  }
-  let returnVal = "";
-  if (provider) {
-    const assetContract = new Contract(
-      spv2TokenAddr,
-      spv2TokenAbi.abi,
-      provider
-    );
-    if (assetContract) {
-      await assetContract.callStatic?.DAO?.().then((result) => {
-        if (result) {
-          returnVal = result.toString();
-        } else {
-          returnVal = "";
-        }
-      });
-    }
-  }
+  // TODO: Add 'allowanceTarget' return to SSUtils contract to bypass the below...
+  // ... and ensure target is correct even if SP does a router upgrade
+  const returnVal = allowanceTarget !== "" ? allowanceTarget : spv2RouterAddr; // A parent function does address0 check prior to this call, not needed here for allowanceTarget
   return returnVal;
 };
 
@@ -114,7 +95,8 @@ export const spv2Allowance = async (
 export const spv2Approve = async (
   selectedAsset1: AssetProps,
   newAllowanceWei: string,
-  signer: Signer
+  signer: Signer,
+  allowanceTarget: string
 ) => {
   // TODO: Add 'approval callData' return to SSUtils contract & replace the below
   let returnVal = false;
@@ -129,7 +111,7 @@ export const spv2Approve = async (
         gasPrice: gasDefault,
       };
       await assetContract
-        ?.approve?.(spv2RouterAddr, newAllowanceWei, ORs)
+        ?.approve?.(allowanceTarget, newAllowanceWei, ORs)
         .then((result: boolean) => {
           if (result) {
             returnVal = result;
