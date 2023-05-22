@@ -1,7 +1,7 @@
 import { CheckIcon, LockClosedIcon } from "@heroicons/react/20/solid";
 import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
-import { useSigner } from "wagmi";
+import { useAccount, useSigner } from "wagmi";
 import { useSwap } from "../../state/swapStore";
 import {
   getSwapSourceApproval,
@@ -18,6 +18,7 @@ import { ethers } from "ethers";
 import { allSwapTxnModalAtoms as atoms } from "../../state/atoms";
 
 export default function TxnProgress() {
+  const { address } = useAccount();
   const {
     swapStep1,
     swapStep2,
@@ -55,6 +56,7 @@ export default function TxnProgress() {
               className={classNames(stepIdx !== 2 ? "pb-10" : "", "relative")}
             >
               {step.status === "complete" ? (
+                // TODO: Add button to revoke allowance for stepIdx === 1
                 <>
                   {stepIdx !== 2 ? (
                     <div
@@ -77,6 +79,8 @@ export default function TxnProgress() {
                       </span>
                       <span className="text-sm text-gray-400">
                         {step.description}
+                        {/* TODO: Add ext link icon button here to check allowance target addr in explorer
+                        {stepIdx === 1 && "BUTTON"} */}
                       </span>
                     </span>
                   </div>
@@ -267,6 +271,8 @@ export default function TxnProgress() {
                 convertToWei(inputUnits),
                 BN(minAmountWei).toFixed(0),
                 signer,
+                address ?? "",
+                minPC, // Slippage PC in units. ie. 1 = 1% ... 0.5 = 0.5% ... etc
               ])
             }
           >
